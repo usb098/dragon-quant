@@ -71,15 +71,6 @@ function expectationTone(value: string): BadgeTone {
   return "muted";
 }
 
-function stanceLabel(value: string): string {
-  return ({
-    supportive: "支持",
-    neutral: "中性观察",
-    cautious: "谨慎",
-    insufficient_evidence: "证据不足",
-  } as Record<string, string>)[value] ?? value;
-}
-
 function lifecycleEventLabel(value: string): string {
   return ({
     leader_handoff: "新老龙交接",

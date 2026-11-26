@@ -1,5 +1,5 @@
 import { Badge } from "../../components/Badge";
-import { display, type LeaderAnalysisView } from "./prepModel";
+import type { LeaderAnalysisView } from "./prepModel";
 
 const STATUS_LABELS: Record<string, string> = {
   identified: "已识别",
