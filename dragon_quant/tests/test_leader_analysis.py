@@ -81,11 +81,11 @@ def test_space_board_without_mainline_leader_is_unconfirmed():
 
 
 def test_packed_board_height_is_decoded_and_rows_are_not_mutated():
-    rows = [_row("600001", 5), {"code": "600002", "name": "高标B",
-             "high_num": 0x00060004, "high": "6天4板"}]
+    rows = [{"code": "600002", "name": "高标B",
+             "high_num": 0x00060006, "high": "6天6板"}]
     before = copy.deepcopy(rows)
-    result = build_leader_analysis(_pool(rows, total=2), [], {})
-    assert result["space_board"]["height"] == 5
+    result = build_leader_analysis(_pool(rows, total=1), [], {})
+    assert result["space_board"]["height"] == 6
     assert rows == before
 
 
@@ -149,3 +149,19 @@ def test_falling_score_within_strong_state_is_tagged_recession():
     )
     assert result["phase"] == "recession"
     assert result["reason"] == "strong_state_score_falling"
+
+
+def test_unparseable_height_row_prevents_space_board_confirmation():
+    rows = [
+        _row("600001", 5),
+        {"code": "600002", "name": "高度缺失", "high_num": "bad"},
+    ]
+    result = build_leader_analysis(
+        _pool(rows, total=2),
+        [{"board_name": "机器人", "rank": 1, "mainline_score": 90.0}],
+        {"600001": _role()},
+    )
+    assert result["coverage"]["observed_total"] == 2
+    assert result["coverage"]["missing_height_total"] == 1
+    assert result["coverage"]["complete"] is False
+    assert result["market_total_leader"]["status"] == "provisional"

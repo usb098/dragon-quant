@@ -122,15 +122,29 @@ def _rows(pool_payload: Any) -> tuple[list[dict], dict]:
     total_raw = _num(payload.get("total"))
     total = int(total_raw) if total_raw is not None and total_raw >= 0 else None
     truncated = payload.get("truncated") is True
-    complete = bool(payload) and not truncated and total is not None and len(seen) >= total
-    status = "missing" if not payload else ("empty" if not output else (
-        "complete" if complete else "partial"
-    ))
+    missing_height = len(seen) - len(output)
+    # 唯一最高板需要每条观测记录都有可解析高度；否则未知行可能比当前最高板更高。
+    complete = (
+        bool(payload)
+        and not truncated
+        and total is not None
+        and len(seen) == total
+        and missing_height == 0
+    )
+    if not payload:
+        status = "missing"
+    elif not seen and total == 0 and not truncated:
+        status = "empty"
+    elif complete:
+        status = "complete"
+    else:
+        status = "partial"
     return output, {
         "status": status,
         "reported_total": total,
         "observed_total": len(seen),
         "rows_with_height": len(output),
+        "missing_height_total": missing_height,
         "truncated": truncated,
         "complete": complete,
     }
