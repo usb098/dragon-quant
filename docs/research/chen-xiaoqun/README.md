@@ -10,6 +10,7 @@
 - 所有理念均为 research_only，不代表已经验证的盈利规律。
 
 ## 文件
+- source-index.v0.3.json：S-A/S-B/S-C/S-D/S-X 来源索引与每种来源可支持/不可支持的判断。
 - principles.v0.3.json：14 条原子原则。
 - case-evidence.v0.3.json：关键案例证据索引与限制。
 - events-2025-summary.v0.3.json：2025 年逐日整理稿的聚合行为假设。
