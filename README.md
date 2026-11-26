@@ -118,6 +118,10 @@ npx dragon-quant-skills doctor                     # 检查安装完整性与 CL
 只读盘前上下文。方法论来自对公开复盘/竞价知识的调研沉淀，见
 [prep-auction](docs/agent/prep-auction.md) 与 [premarket](docs/agent/premarket.md)。
 
+### 全市场空间板与总龙头交叉验证（prep）
+
+prep 在现有市场情绪和主线复盘之上，统计全市场连板梯队，识别空间板，并将最高板与既有主线 leader 角色交叉验证。只有涨停池覆盖完整、最高板唯一且属于主线 leader 时才确认总龙头；并列高标、分页截断或证据不足均显示候选/待确认。情绪周期标签参考市场四态和 T-1 变化，仅用于复盘解释，不自动下单，也不改变现有策略仓位公式。实现口径见 docs/agent/prep-auction.md。
+
 ### 交易策略与 BS 假想回放（buy / sell / bs-eval）
 
 策略层定义了四类买点（开盘回踩 MA5、弱转强、分歧买龙、龙回头）与十条卖出规则（移动止盈、

@@ -53,6 +53,14 @@ python -m dragon_quant prep --json                        # 完整复盘 JSON（
 - **`assets purge-derived`**：只清 `prep_snapshots`、25 个 prep/prep_review 因子派生与引用模型快照；默认 dry-run，`--apply --yes` 单事务。删除后按 `prep_assets` 日期**升序**逐日 `prep --recompute` 再重建因子；升序是硬要求（第 2 天起 prev 才指向新快照）。
 - **auction 缓存**：旧 `auction_snapshots` 是旧 prep 决策的冻结产物，prep 合并不会自动刷新；需要更新时运行 `auction --force`（只影响新日，历史快照不可横向对比新旧池）。
 
+## 空间板与总龙头交叉验证（leader_analysis_v1）
+
+- prep 新增全市场空间板、连板梯队、主线龙头清单和总龙头确认状态。高度解码复用 infra.board_height.parse_board_height，不另造打包高度规则。
+- 覆盖完整性的判定为 fail-closed：必须存在上游 total、未标记 truncated，且实际观测代码数不小于总数；缺少 total 也不能确认全市场最高板。
+- 总龙头仅在「全量涨停池 + 唯一最高空间板 + 该股同时属于已识别主线 leader」时 status=identified。并列最高板为 contested，覆盖不全为 provisional，空间板或主线 leader 证据不匹配为 unconfirmed。
+- review.emotion_cycle 根据市场四态和 T-1 环比输出启动/发酵/高潮/退潮/冰点标签；缺少历史证据时为「待观察」。它是解释性标签，不作为买卖门禁、仓位公式或自动交易指令。
+- 新字段只增补到 review JSON，不改变 SQLite schema、旧评分、候选资格门禁或仓位公式。历史快照需运行 prep --recompute 生成新字段；重新采集仍走普通 prep。
+
 ## 集合竞价采集 `auction`
 
 ### prev 注入与派生清理（0.8）

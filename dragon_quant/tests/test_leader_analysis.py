@@ -121,3 +121,31 @@ def test_first_neutral_snapshot_does_not_guess_cycle_phase():
     assert result["phase"] == "unknown"
     assert result["phase_label"] == "待观察"
     assert result["informational_only"] is True
+
+
+def test_missing_total_cannot_confirm_market_space_board():
+    result = build_leader_analysis(
+        _pool([_row("600001", 6)]),
+        [{"board_name": "机器人", "rank": 1, "mainline_score": 90.0}],
+        {"600001": _role()},
+    )
+    assert result["coverage"]["complete"] is False
+    assert result["market_total_leader"]["status"] == "provisional"
+
+
+def test_space_board_is_unconfirmed_when_no_mainline_leader_is_available():
+    result = build_leader_analysis(
+        _pool([_row("600001", 6)], total=1),
+        [{"board_name": "机器人", "rank": 1, "mainline_score": 90.0}],
+        {},
+    )
+    assert result["market_total_leader"]["status"] == "unconfirmed"
+    assert result["market_total_leader"]["reason"] == "mainline_leader_unavailable"
+
+
+def test_falling_score_within_strong_state_is_tagged_recession():
+    result = classify_emotion_cycle(
+        {"state": "strong", "prev_state": "strong", "score_change": -8.0}
+    )
+    assert result["phase"] == "recession"
+    assert result["reason"] == "strong_state_score_falling"
