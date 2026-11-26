@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 from typing import Literal
 from zoneinfo import ZoneInfo
 
+from dragon_quant.intelligence import analyze_dragon_intelligence
+
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
@@ -639,6 +641,38 @@ def prep_snapshot(trade_date: str, source: str = "v2", slim: bool = True,
         raw_size_bytes=raw_size,
         derived=prep_view.build_snapshot_derived(payload),
     )
+
+
+@router.get("/api/prep/{trade_date}/dragon-intelligence", response_model=None)
+def prep_dragon_intelligence(
+    trade_date: str,
+    source: str = "v2",
+    experts: str | None = None,
+    assets=Depends(assets_repository),
+) -> dict:
+    """基于已保存 prep 快照的只读龙头理解；不联网、不写库、不影响交易决策。"""
+    day = _normalize_date_or_400(trade_date)
+    src = params.parse_source(source)
+    current = assets.get_prep_snapshot(day, src)
+    if current is None:
+        raise ApiError(404, "not_found", f"{day} 无 {src} 复盘快照")
+    try:
+        previous, _previous_meta = assets.get_previous_prep_snapshot(day, src)
+    except Exception:
+        previous = None
+    expert_ids = (
+        [item.strip() for item in experts.split(",") if item.strip()]
+        if isinstance(experts, str) and experts.strip()
+        else None
+    )
+    try:
+        return analyze_dragon_intelligence(
+            current,
+            previous_snapshot=previous,
+            expert_ids=expert_ids,
+        )
+    except ValueError as exc:
+        raise ApiError(400, "invalid_request", str(exc)) from exc
 
 
 @router.get("/api/prep/{trade_date}/review-context", response_model=ReviewContext)

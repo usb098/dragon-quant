@@ -58,6 +58,7 @@ python -m dragon_quant dashboard          # 本地可视化面板（[web] 可选
 | [trading](docs/agent/trading.md) | 改 `review-account` / `buy` / `sell`、候选池消费、数据分级、信号表、`/account` API、费用与评估 | 账户与实盘的产品/运维契约 |
 | [bs_eval](docs/agent/bs_eval.md) | 改 `bs-eval`、`bs_*` 表、`/bs` 页、`/api/bs/*`、买卖点回放与窗口聚合口径 | `bs-eval` 命令 / 状态机 / 幂等 / 聚合 / 只读 API 契约 |
 | [prep-auction](docs/agent/prep-auction.md) | 改 `prep` 复盘、`auction` 竞价、快照口径、`prep_*` / `auction_*` 资产 | 两段式 / 时点门禁 / 资产类型 / 快照与竞价口径 |
+| [intelligence](docs/agent/intelligence.md) | 新增/修改龙头理解引擎、独立理念专家 Adapter、多专家协同与私有知识库边界 | Expert 契约 / 协同语义 / 证据边界 / 私有资料隔离 |
 | [premarket](docs/agent/premarket.md) | 改 `premarket`、盘前只读上下文、三锚/行动上限、盘前 JSON 契约 | 只读语义 / 严格 T-1 / 降级原因码 / 行动上限 |
 | [assets](docs/agent/assets.md) | 改 `assets push/pull/status/verify`、分区与水位、恢复回填、`dragons` 镜像 | 同步运维语义 / 分区 / 水位 / 恢复 / 退出码 |
 | [factor](docs/agent/factor.md) | 改因子层、财务与 PIT、矩阵导出/评估、决策接入、新增或修改因子 | 因子层契约 / 财务 PIT / 矩阵与评估 / 排序注入 |

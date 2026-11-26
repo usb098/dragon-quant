@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import {
   fetchPrepAccuracy,
+  fetchPrepDragonIntelligence,
   fetchPrepCalendar,
   fetchPrepEffect,
   fetchPrepSnapshot,
   fetchPrepWatermark,
   type AccuracyResponse,
+  type DragonIntelligenceResponse,
   type PrepCalendar,
   type PrepEffect,
   type PrepSnapshotView,
@@ -49,6 +51,9 @@ export function PrepPage() {
   const [effect, setEffect] = useState<PrepEffect | null>(null);
   const [effectLoading, setEffectLoading] = useState(false);
   const [effectError, setEffectError] = useState<string | null>(null);
+  const [dragonIntelligence, setDragonIntelligence] = useState<DragonIntelligenceResponse | null>(null);
+  const [dragonIntelligenceLoading, setDragonIntelligenceLoading] = useState(false);
+  const [dragonIntelligenceError, setDragonIntelligenceError] = useState<string | null>(null);
   const [accuracy, setAccuracy] = useState<AccuracyResponse | null>(null);
   const [accuracyLoading, setAccuracyLoading] = useState(true);
   const [accuracyError, setAccuracyError] = useState<string | null>(null);
@@ -118,6 +123,9 @@ export function PrepPage() {
     setLoading(true);
     setWatermark(null);
     setSnapshot(null);
+    setDragonIntelligence(null);
+    setDragonIntelligenceError(null);
+    setDragonIntelligenceLoading(false);
     setEffect(null);
     setEffectError(null);
     setEffectLoading(true);
@@ -130,6 +138,13 @@ export function PrepPage() {
         const snap = await fetchPrepSnapshot(date).catch(() => null);
         if (!active) return;
         setSnapshot(snap);
+        if (snap) {
+          setDragonIntelligenceLoading(true);
+          fetchPrepDragonIntelligence(date)
+            .then((payload) => { if (active) setDragonIntelligence(payload); })
+            .catch((exc: unknown) => { if (active) setDragonIntelligenceError(messageOf(exc)); })
+            .finally(() => { if (active) setDragonIntelligenceLoading(false); });
+        }
       })
       .catch((exc: unknown) => {
         if (!active) return;
@@ -246,7 +261,13 @@ export function PrepPage() {
           description="市场情绪、主线、是否建仓、推荐建仓标的与资产异常摘要。"
         >
           {watermark || snapshot ? (
-            <PrepCoreResult snapshot={snapshot} watermark={watermark} />
+            <PrepCoreResult
+            snapshot={snapshot}
+            watermark={watermark}
+            dragonIntelligence={dragonIntelligence}
+            dragonIntelligenceLoading={dragonIntelligenceLoading}
+            dragonIntelligenceError={dragonIntelligenceError}
+          />
           ) : (
             <EmptyState
               title={loading ? "正在读取该日复盘…" : "该日无复盘记录"}

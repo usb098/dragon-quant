@@ -130,6 +130,113 @@ export interface PrepSnapshotView {
   derived: PrepDerived;
 }
 
+export interface DragonIntelligenceOpinion {
+  expert_id: string;
+  expert_name: string;
+  expert_version: string;
+  stance: "supportive" | "neutral" | "cautious" | "insufficient_evidence";
+  confidence: "high" | "medium" | "low";
+  posture: string;
+  summary: string;
+  evidence_for: string[];
+  evidence_against: string[];
+  unknowns: string[];
+  risk_flags: string[];
+}
+
+export interface DragonIntelligenceCandidate {
+  code: string;
+  name: string | null;
+  identity: string;
+  identity_label: string;
+  role: string | null;
+  confidence: string;
+  is_total_leader: boolean;
+  is_space_board: boolean;
+  sources: string[];
+  structure: {
+    height: number | null;
+    mainline_name: string | null;
+    mainline_rank: number | null;
+    mainline_score: number | null;
+    mainline_state: string | null;
+    role: string | null;
+    role_confidence: string;
+    role_basis: string | null;
+    is_space_board: boolean;
+    first_seal_time: string | null;
+    limit_up_type: string | null;
+    open_num: number | null;
+    amount: number | null;
+    turnover_rate: number | null;
+    main_net_amount: number | null;
+    is_one_word: boolean;
+  };
+  cohesion: {
+    status: string;
+    limit_up_num: number | null;
+    continuous_plate_num: number | null;
+    concentration: number | null;
+    note: string;
+  };
+  expectation_gap: { status: string; reason: string };
+  lifecycle: {
+    stage: string;
+    label: string;
+    previous_total_leader_code: string | null;
+    scope: string;
+  };
+  expert_opinions: DragonIntelligenceOpinion[];
+}
+
+export interface DragonIntelligenceResponse {
+  schema_version: string;
+  status: "ready" | "partial" | "unavailable";
+  reason: string | null;
+  trade_date: string | null;
+  read_only: boolean;
+  decision_impact: boolean;
+  market?: {
+    phase: string;
+    phase_label: string;
+    state: string;
+    score: number | null;
+  };
+  coverage?: {
+    complete: boolean;
+    observed_total: number | null;
+    reported_total: number | null;
+    status: string;
+  };
+  total_leader?: {
+    status: string;
+    code: string | null;
+    reason: string | null;
+    candidate_count: number;
+  };
+  candidate_pool_count?: number;
+  candidates: DragonIntelligenceCandidate[];
+  candidates_truncated?: boolean;
+  experts: Array<{
+    id: string;
+    name: string;
+    version: string;
+    kind: string;
+    framework: string;
+    principles: string[];
+  }>;
+  active_expert_ids?: string[];
+  collaboration: {
+    status: "single_expert" | "aligned" | "divergent" | "insufficient_evidence";
+    consensus_stance: string | null;
+    active_expert_ids: string[];
+    target_code: string | null;
+    note: string;
+  };
+  limitations?: string[];
+  next_checks?: string[];
+}
+
 export interface MarketSide {
   available: boolean;
   trade_date: string | null;
@@ -617,6 +724,14 @@ export function fetchPrepWatermark(tradeDate: string) {
 export function fetchPrepSnapshot(tradeDate: string, slim = true) {
   return getJson<PrepSnapshotView>(
     `/api/prep/${encodeURIComponent(tradeDate)}/snapshot${qs({ slim })}`
+  );
+}
+
+/** 基于已保存快照的龙头理解结果；只读分析，不影响原有策略决策。 */
+export function fetchPrepDragonIntelligence(tradeDate: string, experts?: string[]) {
+  return getJson<DragonIntelligenceResponse>(
+    "/api/prep/" + encodeURIComponent(tradeDate) + "/dragon-intelligence" +
+      qs({ experts: experts?.join(",") })
   );
 }
 

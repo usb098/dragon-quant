@@ -155,3 +155,8 @@
 - Web 策略选择/执行默认只读，需 `dashboard --workspace-writes`（或 `DQ_DASHBOARD_WORKSPACE_WRITES=1`）显式启用；跨站 Origin 一律拒绝。
 - 真实浏览器交互用隔离 `DQ_DATA_DIR`/workspace + `PLAYWRIGHT_BROWSERS_PATH` 指向本机已装 chromium 的脚本验证（列表→选择→保存→CLI 读取→CLI 切换→Web 刷新→账户表单下拉），截图留证；E2E pytest 因 conftest 隔离浏览器目录而不跑真实浏览器。
 - wheel 消费测试构建本地 wheel，在临时 venv `--no-deps` 安装后执行用户策略与用户因子，并重复安装验证用户代码不被覆盖；构建失败即失败，不跳过。
+
+
+## 龙头理解工作台前端增量
+
+/prep 核心结果新增只读 Dragon Intelligence 面板，消费 /api/prep/{date}/dragon-intelligence；展示统一候选、专家观点、共识/分歧和证据缺口。前端数据类型位于 web_ui/frontend/src/api/assets.ts，组件位于 pages/prep/DragonIntelligencePanel.tsx。修改前端后必须执行 npm --prefix web_ui/frontend run build，将 web_ui/dist 与源码同批提交；仅修改源码而未构建 dist 时，dashboard 仍会提供旧界面。
