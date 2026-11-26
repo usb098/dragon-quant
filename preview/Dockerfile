@@ -1,8 +1,10 @@
 # Build the existing React dashboard, then run its FastAPI backend.
-FROM node:20-bookworm-slim AS frontend
+FROM node:22-bookworm-slim AS frontend
 WORKDIR /workspace/web_ui/frontend
 COPY web_ui/frontend/package.json web_ui/frontend/package-lock.json ./
-RUN npm ci
+RUN npm install --include=dev --no-audit --no-fund \
+    && test -x node_modules/.bin/tsc \
+    && test -x node_modules/.bin/vite
 COPY web_ui/frontend/ ./
 RUN npm run build
 
