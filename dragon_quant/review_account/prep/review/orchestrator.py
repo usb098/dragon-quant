@@ -27,6 +27,7 @@ from .config import (
 )
 from .context import build_context, prep_frozen_at
 from .gates import ELIGIBILITY_UNKNOWN, evaluate_gates
+from .leader_analysis import build_leader_analysis, classify_emotion_cycle
 from .mainline import compute_mainlines
 from .market import compute_market_state
 from .pool import derive_anchors, derive_pool_codes
@@ -523,6 +524,9 @@ def compute_review(
         _role_blocks(source, mainlines, config),
         config,
     )
+    # Additive evidence layer: does not change scoring, eligibility, gates or sizing.
+    leaders = build_leader_analysis(source.get("ths_limit_up_pool"), mainlines, roles)
+    emotion_cycle = classify_emotion_cycle(market)
     legacy_by_code = _candidate_legacy(source)
 
     degraded: list[str] = []
@@ -661,6 +665,8 @@ def compute_review(
         "config_version": CONFIG_VERSION,
         "config_hash": config_hash(config),
         "market": market,
+        "emotion_cycle": emotion_cycle,
+        "leaders": leaders,
         "mainlines": mainlines,
         "anchors": {
             "positive": anchors["positive"],
