@@ -11,9 +11,7 @@ def create_app(settings: DashboardSettings | None = None):
 
     from fastapi import FastAPI
     from fastapi.responses import JSONResponse
-    from starlette.middleware.trustedhost import TrustedHostMiddleware
-
-    from .auth import BasicAuthMiddleware
+    from .auth import BasicAuthMiddleware, HealthProbeTrustedHostMiddleware
     from .bs_runner import BsRunner
     from .errors import install_error_handlers
     from .review_runner import ReviewJobRunner
@@ -59,7 +57,7 @@ def create_app(settings: DashboardSettings | None = None):
         raise RuntimeError("Public dashboard requires at least one DQ_ALLOWED_HOSTS entry")
 
     app.add_middleware(
-        TrustedHostMiddleware,
+        HealthProbeTrustedHostMiddleware,
         allowed_hosts=sorted(allowed_hosts),
     )
     app.add_middleware(

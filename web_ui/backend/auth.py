@@ -6,6 +6,22 @@ import binascii
 import hmac
 from typing import Any
 
+from starlette.middleware.trustedhost import TrustedHostMiddleware
+
+
+class HealthProbeTrustedHostMiddleware:
+    """Apply host allowlist to user routes, but permit Railway's private health probe."""
+
+    def __init__(self, app: Any, *, allowed_hosts: list[str]) -> None:
+        self.app = app
+        self.trusted = TrustedHostMiddleware(app, allowed_hosts=allowed_hosts)
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") == "http" and scope.get("path") == "/health":
+            await self.app(scope, receive, send)
+            return
+        await self.trusted(scope, receive, send)
+
 
 def basic_auth_matches(header: str | None, username: str, password: str) -> bool:
     if not header or not username or not password:
@@ -68,4 +84,8 @@ class BasicAuthMiddleware:
         await send({"type": "http.response.body", "body": body})
 
 
-__all__ = ["BasicAuthMiddleware", "basic_auth_matches"]
+__all__ = [
+    "BasicAuthMiddleware",
+    "HealthProbeTrustedHostMiddleware",
+    "basic_auth_matches",
+]
