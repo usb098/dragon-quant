@@ -122,7 +122,7 @@ def _rows(pool_payload: Any) -> tuple[list[dict], dict]:
     total_raw = _num(payload.get("total"))
     total = int(total_raw) if total_raw is not None and total_raw >= 0 else None
     truncated = payload.get("truncated") is True
-    complete = bool(payload) and not truncated and (total is None or len(seen) >= total)
+    complete = bool(payload) and not truncated and total is not None and len(seen) >= total
     status = "missing" if not payload else ("empty" if not output else (
         "complete" if complete else "partial"
     ))
@@ -256,7 +256,7 @@ def build_leader_analysis(
         })
     elif len(space_rows) > 1:
         total.update({
-            "status": "contested", "candidate": candidate,
+            "status": "contested", "candidate": space_rows[0],
             "candidates": space_rows, "confidence": "low",
             "reason": "multiple_stocks_share_space_board",
         })
@@ -271,11 +271,14 @@ def build_leader_analysis(
             "confidence": confidence,
             "reason": "unique_space_board_is_mainline_leader",
         })
-    elif leaders:
+    else:
         total.update({
             "status": "unconfirmed", "candidate": space_rows[0],
             "candidates": space_rows, "confidence": "low",
-            "reason": "space_board_not_mainline_leader",
+            "reason": (
+                "space_board_not_mainline_leader"
+                if leaders else "mainline_leader_unavailable"
+            ),
         })
 
     public_leaders = [_public_stock(item) for item in leaders]
@@ -333,8 +336,11 @@ def classify_emotion_cycle(market: Any) -> dict:
         elif previous == "neutral" and change is not None and change > 0:
             phase, reason, confidence = "fermentation", "neutral_to_strong_with_rising_score", "medium"
         elif previous == "strong":
-            phase, reason = "climax", "strong_state_persisted"
-            confidence = "medium" if change is None or change >= 0 else "low"
+            if change is not None and change < 0:
+                phase, reason, confidence = "recession", "strong_state_score_falling", "low"
+            else:
+                phase, reason = "climax", "strong_state_persisted"
+                confidence = "medium"
 
     labels = {
         "startup": "启动", "fermentation": "发酵", "climax": "高潮",
