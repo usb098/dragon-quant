@@ -151,7 +151,7 @@ def run_start(
     if origin is not None and not origin_allowed(origin):
         return JSONResponse(status_code=403, content={
             "error": "invalid_origin",
-            "detail": "只允许本机 dashboard 页面触发命令",
+            "detail": "只允许配置的同源 dashboard 页面触发命令",
         })
 
     spec = _spec(job)

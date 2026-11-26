@@ -7,10 +7,13 @@ from .settings import DashboardSettings
 
 def create_app(settings: DashboardSettings | None = None):
     """装配 FastAPI 应用：中间件 → 路由 → /api 404 兜底 → SPA 前端。"""
+    import os
+
     from fastapi import FastAPI
     from fastapi.responses import JSONResponse
     from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+    from .auth import BasicAuthMiddleware
     from .bs_runner import BsRunner
     from .errors import install_error_handlers
     from .review_runner import ReviewJobRunner
@@ -35,18 +38,47 @@ def create_app(settings: DashboardSettings | None = None):
     # 交易日历探测：构造无 I/O，首次判定才联网并按自然日缓存。
     app.state.trade_calendar = TradeCalendarProbe()
 
-    # 纯 ASGI 中间件：在响应流上叠加 Cache-Control（不改路由实现）。
-    app.add_middleware(CacheControlMiddleware)
-    # 抵御 DNS rebinding：只接受本机 Host。
+    public_mode = os.environ.get("DQ_PUBLIC_DEPLOYMENT", "").strip().lower() in {
+        "1", "true", "yes", "on",
+    }
+    auth_user = os.environ.get("DQ_DASHBOARD_USERNAME", "")
+    auth_password = os.environ.get("DQ_DASHBOARD_PASSWORD", "")
+    if public_mode and (not auth_user or len(auth_password) < 32):
+        raise RuntimeError(
+            "Public dashboard requires DQ_DASHBOARD_USERNAME and a "
+            "DQ_DASHBOARD_PASSWORD of at least 32 characters"
+        )
+
+    allowed_hosts = {"localhost", "127.0.0.1", "[::1]"}
+    allowed_hosts.update(
+        host.strip().lower()
+        for host in os.environ.get("DQ_ALLOWED_HOSTS", "").split(",")
+        if host.strip()
+    )
+    if public_mode and len(allowed_hosts) == 3:
+        raise RuntimeError("Public dashboard requires at least one DQ_ALLOWED_HOSTS entry")
+
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["localhost", "127.0.0.1", "[::1]"],
+        allowed_hosts=sorted(allowed_hosts),
     )
+    app.add_middleware(
+        BasicAuthMiddleware,
+        username=auth_user,
+        password=auth_password,
+        required=public_mode or bool(auth_user or auth_password),
+        exempt_paths={"/health"},
+    )
+    app.add_middleware(CacheControlMiddleware)
 
     install_error_handlers(app)
 
     for router in ROUTERS:
         app.include_router(router)
+
+    @app.get("/health", include_in_schema=False)
+    def health():
+        return {"status": "ok"}
 
     # 必须在 app.frontend 之前注册：未知 /api 路径返回 404 JSON，
     # 绝不被 SPA fallback 吃成 index.html。
