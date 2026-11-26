@@ -454,3 +454,90 @@ export function buildAnomalies(
   }
   return items;
 }
+
+
+// ─── 全市场空间板 / 总龙头交叉验证 ─────────────────────────────────────────
+
+export interface LeaderStockView {
+  code: string;
+  name: string | null;
+  height: number | null;
+  firstSealTime: string | null;
+  mainline: string | null;
+  role: string | null;
+}
+
+export interface LeaderAnalysisView {
+  phaseLabel: string | null;
+  phaseReason: string | null;
+  coverageComplete: boolean | null;
+  observedTotal: number | null;
+  reportedTotal: number | null;
+  spaceBoardHeight: number | null;
+  spaceBoardCount: number;
+  spaceStocks: LeaderStockView[];
+  ladder: Array<{ height: number; count: number; codes: string[] }>;
+  totalLeaderStatus: string | null;
+  totalLeaderCode: string | null;
+  totalLeaderName: string | null;
+  totalLeaderCandidateCode: string | null;
+  totalLeaderCandidateName: string | null;
+  totalLeaderReason: string | null;
+  mainlineLeaders: Array<{
+    code: string; name: string | null; height: number | null;
+    mainline: string | null; mainlineRank: number | null;
+  }>;
+}
+
+export function buildLeaderAnalysisView(
+  snapshot: PrepSnapshotView
+): LeaderAnalysisView | null {
+  const review = asDict(snapshot.review);
+  const leaders = asDict(review?.leaders);
+  if (!leaders) return null;
+
+  const cycle = asDict(review?.emotion_cycle);
+  const coverage = asDict(leaders.coverage);
+  const space = asDict(leaders.space_board);
+  const total = asDict(leaders.market_total_leader);
+  const candidate = asDict(total?.candidate);
+  const stocks = (asList(space?.stocks) ?? []).map((item) => ({
+    code: text(item.code) ?? "",
+    name: text(item.name),
+    height: num(item.height),
+    firstSealTime: text(item.first_seal_time),
+    mainline: text(item.mainline),
+    role: text(item.role),
+  }));
+  const ladder = (asList(leaders.ladder) ?? []).map((item) => ({
+    height: num(item.height) ?? 0,
+    count: num(item.count) ?? 0,
+    codes: textList(item.codes),
+  }));
+  const mainlineLeaders = (asList(leaders.mainline_leaders) ?? []).map((item) => ({
+    code: text(item.code) ?? "",
+    name: text(item.name),
+    height: num(item.height),
+    mainline: text(item.mainline),
+    mainlineRank: num(item.mainline_rank),
+  }));
+
+  return {
+    phaseLabel: text(cycle?.phase_label),
+    phaseReason: text(cycle?.reason),
+    coverageComplete: bool(coverage?.complete),
+    observedTotal: num(coverage?.observed_total),
+    reportedTotal: num(coverage?.reported_total),
+    spaceBoardHeight: num(space?.height),
+    spaceBoardCount: num(space?.count) ?? stocks.length,
+    spaceStocks: stocks,
+    ladder,
+    totalLeaderStatus: text(total?.status),
+    totalLeaderCode: text(total?.code),
+    totalLeaderName: text(candidate?.name),
+    totalLeaderCandidateCode: text(candidate?.code),
+    totalLeaderCandidateName: text(candidate?.name),
+    totalLeaderReason: text(total?.reason),
+    mainlineLeaders,
+  };
+}

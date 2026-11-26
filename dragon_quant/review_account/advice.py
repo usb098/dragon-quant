@@ -476,6 +476,37 @@ def format_review_lines(result: dict) -> list[str]:
         "复盘摘要："
         f"{_market_headline(market)}｜主线 {_mainline_headline(review.get('mainlines'))}"
     ]
+    cycle = review.get("emotion_cycle")
+    cycle = cycle if isinstance(cycle, dict) else {}
+    leader_report = review.get("leaders")
+    leader_report = leader_report if isinstance(leader_report, dict) else {}
+    space = leader_report.get("space_board")
+    space = space if isinstance(space, dict) else {}
+    total_leader = leader_report.get("market_total_leader")
+    total_leader = total_leader if isinstance(total_leader, dict) else {}
+    candidate = total_leader.get("candidate")
+    candidate = candidate if isinstance(candidate, dict) else {}
+    height = space.get("height")
+    count = space.get("count")
+    space_text = (
+        f"{int(height)} 板 / {int(count or 0)} 只"
+        if isinstance(height, (int, float)) and not isinstance(height, bool)
+        else "不可判"
+    )
+    if total_leader.get("status") == "identified" and isinstance(total_leader.get("code"), str):
+        leader_text = f"已识别 {total_leader['code']} {_clean(candidate.get('name') or '')}".strip()
+    elif candidate.get("code"):
+        leader_text = f"待确认（候选 {candidate.get('code')} {_clean(candidate.get('name') or '')}）"
+    else:
+        leader_text = "待确认"
+    coverage = leader_report.get("coverage")
+    coverage = coverage if isinstance(coverage, dict) else {}
+    coverage_text = "全量池" if coverage.get("complete") is True else "涨停池数据不完整"
+    phase = cycle.get("phase_label")
+    phase_text = _clean(phase) if isinstance(phase, str) and phase else "待观察"
+    lines.append(
+        f"情绪周期 {phase_text}｜空间板 {space_text}｜总龙头 {leader_text}｜{coverage_text}"
+    )
 
     grade_counts = {grade: 0 for grade in _GRADES}
     ungraded = 0

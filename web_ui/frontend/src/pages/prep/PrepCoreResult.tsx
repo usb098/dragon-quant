@@ -13,10 +13,12 @@ import { EmptyState } from "../../components/EmptyState";
 import { PaginatedDataTable } from "../../components/PaginatedDataTable";
 import { fmtNum } from "../../lib/format";
 import { UNKNOWN_REASON_LABELS, labelOf } from "../../lib/labels";
+import { LeaderPanel } from "./LeaderPanel";
 import { MainlineTable } from "./MainlineTable";
 import { MarketStrip } from "./MarketStrip";
 import {
   buildAnomalies,
+  buildLeaderAnalysisView,
   buildMainlineRows,
   buildMarketView,
   buildRecommendedCandidates,
@@ -84,6 +86,7 @@ export function PrepCoreResult({
   watermark: PrepWatermark | null;
 }) {
   const market = snapshot ? buildMarketView(snapshot) : null;
+  const leaderAnalysis = snapshot ? buildLeaderAnalysisView(snapshot) : null;
   const mainlines = snapshot ? buildMainlineRows(snapshot, null) : [];
   const recommended = snapshot ? buildRecommendedCandidates(snapshot) : [];
   const runInfo = snapshot ? buildRunInfo(snapshot) : null;
@@ -104,6 +107,11 @@ export function PrepCoreResult({
         ) : (
           <div className="text-body text-ink-3">该日无复盘快照。</div>
         )}
+      </div>
+
+      <div className="grid gap-2">
+        <div className="text-body font-medium text-ink">空间板与总龙头</div>
+        <LeaderPanel data={leaderAnalysis} />
       </div>
 
       <div className="grid gap-2">
