@@ -1,6 +1,6 @@
 ---
 name: chen-xiaoqun-public-framework
-version: 0.1.0
+version: 0.2.0
 expert_id: chen_xiaoqun
 market_scope:
   - A股
@@ -84,3 +84,20 @@ source_basis: public_framework_distillation_v1
 ## Public basis
 
 - https://github.com/sherjy/chen-xiaoqun-skill
+
+
+## 用户资料蒸馏 v0.3（research_only）
+
+派生研究资料存放于 docs/research/chen-xiaoqun/；原始 PDF/PNG/ZIP 不入库。当前整理出 14 条候选原则 CX-P01 至 CX-P14，涵盖主线优先、市场合力、模式随环境切换、强度不及预期退出、退潮控制回撤、龙头生命周期、趋势/情绪交易区分及事前计划与结果双轨复盘。每条保留来源等级、归因、置信度、测试代理和边界。账号身份未独立验证；2025 年整理稿属于 C 级二手复盘；所有原则仍为 research_only。
+
+### 条件式模式选择
+
+代码入口：dragon_quant/intelligence/decision_framework.py。判断顺序：
+1. 市场门：冰点/退潮或 market_state=ice 时 stand_aside；高潮、弱势或阶段未知时提高谨慎级别。
+2. 主线门：主线需有强化证据；weakening 时不建议开启进攻模式。
+3. 角色门：优先观察总龙头/主线龙头/先锋；跟风降级。
+4. 合力与预期门：成分股联动只有 measured 才作为实测；冻结预期未知不伪造成超预期。
+5. 模式比较：打板/接力、低吸/分歧承接、弱转强、趋势跟随、反核/修复分别评估支持证据、阻断原因和盘中确认项。
+6. 最终状态为 stand_aside / conditional_watch / wait_for_confirmation / insufficient_data；can_execute 始终为 false。
+
+conditional_setup 不是买点；缺实时竞价、盘口、分时量价或可成交性时，只能观察。系统不输出买入价、卖出价、仓位或胜率承诺，不自动下单。门槛均为待样本外验证的研究启发式，不宣称来自本人原始规则。

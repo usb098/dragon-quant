@@ -278,11 +278,14 @@ def build_decision_framework(context: Mapping[str, Any], candidate: Mapping[str,
         decision_status = "insufficient_data"
         decision_label = "等待证据"
     else:
-        preference_order = (
-            ["repair_rebound", "pullback_absorption", "weak_to_strong", "breakout_follow", "trend_follow"]
-            if repair_seen or first_negative else
-            ["weak_to_strong", "breakout_follow", "trend_follow", "pullback_absorption", "repair_rebound"]
-        )
+        if repair_seen:
+            preference_order = ["repair_rebound", "pullback_absorption", "breakout_follow", "weak_to_strong", "trend_follow"]
+        elif first_negative:
+            preference_order = ["pullback_absorption", "repair_rebound", "breakout_follow", "weak_to_strong", "trend_follow"]
+        elif role == "vanguard":
+            preference_order = ["weak_to_strong", "breakout_follow", "trend_follow", "pullback_absorption", "repair_rebound"]
+        else:
+            preference_order = ["breakout_follow", "weak_to_strong", "trend_follow", "pullback_absorption", "repair_rebound"]
         preferred_mode = next(
             (mode for mode in preference_order if mode in conditional_modes),
             "none",
