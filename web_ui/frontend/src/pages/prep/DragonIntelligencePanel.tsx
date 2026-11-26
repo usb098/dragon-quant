@@ -88,7 +88,8 @@ function CandidateCard({ candidate }: { candidate: DragonIntelligenceCandidate }
             {" · "}换手 {candidate.structure.turnover_rate == null ? "—" : candidate.structure.turnover_rate + "%"}
           </div>
           <div className="text-caption text-ink-3">
-            板块涨停 {candidate.cohesion.limit_up_num ?? "—"} 家 · {candidate.cohesion.status === "partial_proxy" ? "静态代理" : "数据不足"}
+            板块涨停 {candidate.cohesion.limit_up_num ?? "—"} 家 ·{" "}
+            {candidate.cohesion.status === "partial_proxy" ? "静态代理" : "数据不足"}
           </div>
         </div>
       </div>
@@ -163,7 +164,11 @@ export function DragonIntelligencePanel({
   const phaseLabel = data.market?.phase_label ?? "待观察";
   return (
     <div className="grid gap-3">
-      {error ? <div className="rounded-md border border-warning-line bg-warning-soft px-3 py-2 text-body text-ink">{error}</div> : null}
+      {error ? (
+        <div className="rounded-md border border-warning-line bg-warning-soft px-3 py-2 text-body text-ink">
+          {error}
+        </div>
+      ) : null}
       <div className="grid gap-2 md:grid-cols-3">
         <div className="rounded-md border border-hairline px-3 py-2.5">
           <div className="text-caption text-ink-3">市场情绪</div>
@@ -216,7 +221,7 @@ export function DragonIntelligencePanel({
         </div>
         {data.candidates.length ? (
           <div className="grid gap-2">
-            {data.candidates.slice(0, 12).map((candidate) => (
+            {data.candidates.map((candidate) => (
               <CandidateCard key={candidate.code} candidate={candidate} />
             ))}
           </div>
