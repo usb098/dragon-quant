@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>dragon-quant · 龙头研究看板</title>
+<style>
+:root{--bg:#f4f6fa;--ink:#19263a;--muted:#718096;--line:#e6ebf2;--nav:#101a2b;--blue:#4e7de6;--green:#158566;--amber:#b87519;--red:#c94e5a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.55 Inter,"Microsoft YaHei",system-ui,sans-serif}
+.app{min-height:100vh;display:grid;grid-template-columns:220px minmax(0,1fr)}aside{background:var(--nav);color:#dce5f2;padding:24px 15px;display:flex;flex-direction:column;gap:28px}
+.brand{display:flex;gap:10px;align-items:center;padding:0 8px}.mark{width:34px;height:34px;border-radius:11px;background:linear-gradient(140deg,#82a7ff,#3562c8);display:grid;place-items:center;font-size:18px}.brand strong{display:block}.brand small{color:#8394ac;font-size:10px}
+.group-title{font-size:10px;color:#7687a0;letter-spacing:1.1px;padding:0 11px 8px}.nav{padding:10px 11px;border-radius:8px;color:#aebbd0;margin:3px 0}.nav.active{background:#26364f;color:white;box-shadow:inset 2px 0 #8aaaff}.foot{margin-top:auto;border-top:1px solid #2b394e;padding:14px 8px;color:#8291a7;font-size:10px}
+main{min-width:0}header{height:64px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 30px;position:sticky;top:0}.crumb{color:var(--muted);font-size:12px}.crumb b{color:var(--ink)}
+.demo{font-size:10px;font-weight:800;color:#956012;background:#fff4dc;border:1px solid #f0dfb9;border-radius:99px;padding:5px 10px}
+.content{max-width:1450px;margin:auto;padding:28px 30px 50px}.top{display:flex;justify-content:space-between;align-items:end;gap:15px;margin-bottom:23px}h1{font-size:24px;margin:0 0 4px;letter-spacing:-.5px}.sub{color:var(--muted);font-size:11px}.date{border:1px solid var(--line);background:white;border-radius:8px;padding:8px 12px;color:#58677e;font-size:11px}
+.section{margin-top:21px}.sect-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}h2{font-size:14px;margin:0}.hint{font-size:10px;color:var(--muted)}
+.grid{display:grid;gap:12px}.metrics{grid-template-columns:repeat(5,minmax(0,1fr))}.card{background:white;border:1px solid var(--line);border-radius:11px;box-shadow:0 6px 22px rgba(25,45,75,.045)}.metric{padding:14px 15px}.label{font-size:10px;color:var(--muted)}.value{font-size:23px;font-weight:800;margin-top:6px}.desc{font-size:10px;color:var(--muted)}.red{color:var(--red)}.green{color:var(--green)}
+.leaders{grid-template-columns:repeat(3,minmax(0,1fr))}.lead-card{padding:16px 17px;min-height:140px}.lead-main{display:flex;align-items:center;gap:9px;margin:12px 0 6px}.lead-big{font-size:26px;font-weight:800;letter-spacing:-.7px}.lead-copy{font-size:10px;color:var(--muted)}.badge{font-size:9px;border-radius:99px;padding:4px 7px;font-weight:800;white-space:nowrap}.ok{background:#e9f7f0;color:#147c5c}.warn{background:#fff2dc;color:#a76b13}.soft{background:#edf1f6;color:#68778d}
+.two{grid-template-columns:1.05fr .95fr}.panel{padding:17px 18px}.ladder{display:grid;gap:11px;margin-top:14px}.lrow{display:grid;grid-template-columns:48px 1fr 30px;gap:10px;align-items:center;font-size:11px}.track{height:8px;border-radius:20px;background:#eef2f7;overflow:hidden}.bar{height:100%;background:linear-gradient(90deg,#8eafff,#4d7ce4);border-radius:20px}.count{text-align:right;color:#687990}.codes{grid-column:2/4;color:#8996a6;font-size:9px;margin-top:-8px}
+.rows{margin-top:8px}.r{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid #edf0f5;gap:12px}.r:last-child{border:0}.sector{font-weight:700;font-size:11px}.stock{font-size:10px;color:#61718a;text-align:right}.tag{font-size:9px;background:#edf3ff;color:#4b70bc;border-radius:5px;padding:3px 5px}
+table{width:100%;border-collapse:collapse;min-width:650px}th{text-align:left;background:#fafbfd;color:#8491a2;font-size:9px;letter-spacing:.4px;padding:10px 14px;border-bottom:1px solid var(--line)}td{font-size:10px;color:#53637a;padding:11px 14px;border-bottom:1px solid #edf0f5}tr:last-child td{border:0}.code{font-weight:800;color:#263750}.name{font-size:9px;color:#8a97a7}.score{font-weight:800;color:#2a3c58}.table{overflow:auto}
+.note{text-align:center;font-size:9px;color:#8793a3;margin-top:23px}
+@media(max-width:1050px){.app{grid-template-columns:185px 1fr}.metrics{grid-template-columns:repeat(3,1fr)}.content{padding:23px}}
+@media(max-width:720px){.app{display:block}aside{display:none}header{height:54px;padding:0 15px}.content{padding:19px 14px 35px}.top{align-items:start;flex-direction:column}h1{font-size:21px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.leaders,.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+ <div class="brand"><div class="mark">🐉</div><div><strong>dragon-quant</strong><small>A股龙头研究工作台</small></div></div>
+ <div><div class="group-title">市场研究</div><div class="nav">⌂　龙头识别</div><div class="nav active">◷　盘后复盘</div><div class="nav">◉　集合竞价</div><div class="nav">▤　盘前预案</div></div>
+ <div><div class="group-title">交易与验证</div><div class="nav">▦　账户验证</div><div class="nav">⌁　买卖策略</div><div class="nav">◫　研究归因</div></div>
+ <div class="foot">只读演示站<br>不连接行情、数据库或券商</div>
+</aside>
+<main>
+<header><div class="crumb">市场研究　/　<b>盘后复盘</b></div><span class="demo">DEMO · 虚构数据</span></header>
+<div class="content">
+ <div class="top"><div><h1>盘后复盘</h1><div class="sub">市场情绪、主线梯队、空间板与总龙头交叉验证</div></div><div class="date">▦　2026-11-26　（演示日期）</div></div>
+
+ <section class="section"><div class="sect-head"><h2>市场情绪</h2><span class="hint">T 日收盘快照 · 样例数据</span></div>
+ <div class="grid metrics">
+  <div class="card metric"><div class="label">情绪温度</div><div class="value">73.8</div><div class="desc red">↑ +8.6 较上一交易日</div></div>
+  <div class="card metric"><div class="label">涨停家数</div><div class="value red">68</div><div class="desc">全市场涨停池</div></div>
+  <div class="card metric"><div class="label">跌停家数</div><div class="value green">4</div><div class="desc">亏钱效应观察</div></div>
+  <div class="card metric"><div class="label">炸板率</div><div class="value">22.5%</div><div class="desc">封板质量</div></div>
+  <div class="card metric"><div class="label">市场最高板</div><div class="value">6 板</div><div class="desc">高度字段完整性需核验</div></div>
+ </div></section>
+
+ <section class="section"><div class="sect-head"><h2>空间板与总龙头</h2><span class="hint">leader_analysis_v1 · 新增分析区</span></div>
+ <div class="grid leaders">
+  <div class="card lead-card"><div class="label">情绪周期</div><div class="lead-main"><div class="lead-big">发酵</div><span class="badge ok">中等置信度</span></div><div class="lead-copy">市场由中性转强，情绪与主线同步改善</div><div class="desc" style="margin-top:10px">解释性标签，不直接驱动买卖或仓位</div></div>
+  <div class="card lead-card"><div class="label">全市场空间板</div><div class="lead-main"><div class="lead-big">6 板</div><span class="badge soft">唯一最高板</span></div><div class="lead-copy"><b>DEMO-001</b> · 示例换手板 · 首封 09:42</div><div class="desc" style="margin-top:10px">已观测 72 / 报告 72 只 · 高度数据完整</div></div>
+  <div class="card lead-card"><div class="label">市场总龙头</div><div class="lead-main"><div class="lead-big" style="font-size:22px">DEMO-001</div><span class="badge ok">已识别</span></div><div class="lead-copy">唯一最高空间板，同时属于已识别主线 leader</div><div class="desc" style="margin-top:10px">置信度：高 · 示例代码，不对应实际证券</div></div>
+ </div></section>
+
+ <section class="section"><div class="grid two">
+  <div class="card panel"><div class="sect-head"><h2>连板梯队</h2><span class="hint">按高度降序</span></div><div class="ladder">
+   <div class="lrow"><b>6 板</b><div class="track"><div class="bar" style="width:18%"></div></div><div class="count">1</div><div class="codes">DEMO-001</div></div>
+   <div class="lrow"><b>5 板</b><div class="track"><div class="bar" style="width:36%"></div></div><div class="count">2</div><div class="codes">DEMO-002 · DEMO-003</div></div>
+   <div class="lrow"><b>4 板</b><div class="track"><div class="bar" style="width:53%"></div></div><div class="count">3</div><div class="codes">DEMO-004 · DEMO-005 · DEMO-006</div></div>
+   <div class="lrow"><b>3 板</b><div class="track"><div class="bar" style="width:78%"></div></div><div class="count">5</div><div class="codes">DEMO-007 · DEMO-008 · DEMO-009 · +2</div></div>
+   <div class="lrow"><b>2 板</b><div class="track"><div class="bar" style="width:100%"></div></div><div class="count">7</div><div class="codes">DEMO-010 · DEMO-011 · DEMO-012 · +4</div></div>
+  </div></div>
+  <div class="card panel"><div class="sect-head"><h2>主线龙头</h2><span class="hint">原五角色体系</span></div><div class="rows">
+   <div class="r"><div><div class="sector">机器人</div><div class="desc">主线排名 #1 · 走强</div></div><div class="stock"><b>DEMO-001</b> · 6 板 <span class="tag">主线龙头</span></div></div>
+   <div class="r"><div><div class="sector">AI 算力</div><div class="desc">主线排名 #2 · 稳定</div></div><div class="stock"><b>DEMO-004</b> · 4 板 <span class="tag">主线龙头</span></div></div>
+   <div class="r"><div><div class="sector">低空经济</div><div class="desc">主线排名 #3 · 新进</div></div><div class="stock"><b>DEMO-007</b> · 3 板 <span class="tag">主线龙头</span></div></div>
+  </div></div>
+ </div></section>
+
+ <section class="section"><div class="sect-head"><h2>详细候选池</h2><span class="hint">所有代码、名称与分数均为虚构样例</span></div><div class="card table">
+ <table><thead><tr><th>代码 / 名称</th><th>主线</th><th>角色</th><th>连板</th><th>复盘评分</th><th>数据状态</th><th>建议仓位</th></tr></thead><tbody>
+ <tr><td><div class="code">DEMO-001</div><div class="name">示例龙头甲</div></td><td>机器人</td><td>leader</td><td>6 板</td><td class="score">91.2</td><td><span class="badge ok">数据完整</span></td><td>—</td></tr>
+ <tr><td><div class="code">DEMO-004</div><div class="name">示例龙头乙</div></td><td>AI 算力</td><td>leader</td><td>4 板</td><td class="score">86.5</td><td><span class="badge ok">数据完整</span></td><td>—</td></tr>
+ <tr><td><div class="code">DEMO-007</div><div class="name">示例先锋丙</div></td><td>低空经济</td><td>vanguard</td><td>3 板</td><td class="score">79.8</td><td><span class="badge warn">待观察</span></td><td>—</td></tr>
+ <tr><td><div class="code">DEMO-010</div><div class="name">示例容量丁</div></td><td>机器人</td><td>capacity</td><td>2 板</td><td class="score">74.1</td><td><span class="badge ok">数据完整</span></td><td>—</td></tr>
+ </tbody></table></div></section>
+ <div class="note">静态演示页面 · 虚构行情 / 证券代码 / 评分 / 日期 · 不包含真实交易数据，也不构成投资建议</div>
+</div>
+</main>
+</div>
+</body></html>
