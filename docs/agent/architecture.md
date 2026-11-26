@@ -61,6 +61,10 @@ dragon_quant/
 │   └── live_trade/              # 实盘辅助 buy/sell（纯信号记账）
 │       ├── __init__.py / main.py / service.py / trader.py / signal_engine.py / shadow.py
 │       └── storage.py
+├── intelligence/                # 龙头理解引擎与独立理念专家注册表（只读纯计算）
+│   ├── __init__.py / engine.py / registry.py
+│   └── experts/                  # 每位游资理念独立的 Expert Adapter
+│       └── chen_xiaoqun.py
 ├── vpa/                         # 量价分析
 │   ├── __init__.py / main.py / engine.py / types.py / report.py / storage.py
 │   └── factors/                 # vol_amount / trend_verify / breakout / divergence

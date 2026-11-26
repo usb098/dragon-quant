@@ -1,0 +1,109 @@
+schema_version: "elite_principles_v1"
+expert_id: "chen_xiaoqun"
+expert_version: "0.1.0"
+source_basis: "public_framework_distillation_v1"
+principles:
+  - principle_id: "cxq_emotion_cycle"
+    title: "先判断市场情绪周期"
+    claim_type: "paraphrase"
+    normalized_rule: "先识别市场启动、发酵、高潮、退潮或冰点，再评估单只股票的参与环境。"
+    scope:
+      markets: ["A股"]
+      time_horizon: "short_term"
+      regimes: ["all"]
+    observable_inputs: ["涨停/跌停数量", "炸板率", "连板高度", "晋级率", "昨日涨停溢价"]
+    invalidation_conditions: ["关键情绪指标缺失", "市场阶段无法由前后快照确认"]
+    unknown_when: ["市场宽度数据不完整", "缺少前序交易日快照"]
+    source:
+      source_id: "sherjy_chen_xiaoqun_public_skill"
+      url: "https://github.com/sherjy/chen-xiaoqun-skill"
+      location: "public SKILL.md / emotion cycle concepts"
+    evidence_level: "public_framework_paraphrase"
+    validation_status: "unvalidated_with_user_private_materials"
+
+  - principle_id: "cxq_mainline_leader"
+    title: "聚焦主线核心而非随机强势股"
+    claim_type: "paraphrase"
+    normalized_rule: "先确认主线地位和延续，再区分主线龙头、先锋、中军、容量核心与跟风。"
+    scope:
+      markets: ["A股"]
+      time_horizon: "short_term"
+      regimes: ["trend", "emotion_cycle"]
+    observable_inputs: ["主线排名变化", "板块涨停扩散", "角色分类", "空间板交叉确认"]
+    invalidation_conditions: ["主线持续走弱", "个股失去主线地位"]
+    unknown_when: ["主线成分缺失", "股票角色置信度不足"]
+    source:
+      source_id: "sherjy_chen_xiaoqun_public_skill"
+      url: "https://github.com/sherjy/chen-xiaoqun-skill"
+      location: "public SKILL.md / leading stock and mainline concepts"
+    evidence_level: "public_framework_paraphrase"
+    validation_status: "unvalidated_with_user_private_materials"
+
+  - principle_id: "cxq_market_cohesion"
+    title: "检验板块市场合力"
+    claim_type: "researcher_inference"
+    normalized_rule: "用成分股同步表现、扩散度和相关性检验板块是否形成合力；单只股票独强不能单独证明板块合力。"
+    scope:
+      markets: ["A股"]
+      time_horizon: "short_term"
+      regimes: ["all"]
+    observable_inputs: ["成分股上涨占比", "成分股收益相关性", "同步上涨/下跌日", "行情覆盖率"]
+    invalidation_conditions: ["板块同步性消失", "龙头强势但成员股普遍走弱"]
+    unknown_when: ["共同交易日不足", "成分股日K覆盖率低于门槛"]
+    source:
+      source_id: "researcher_structured_extension"
+      location: "dragon_quant/intelligence/cohesion.py"
+    evidence_level: "researcher_inference"
+    validation_status: "needs_walk_forward"
+
+  - principle_id: "cxq_expectation_gap"
+    title: "在事前预期基线上观察预期差"
+    claim_type: "researcher_inference"
+    normalized_rule: "冻结前一日角色、主线、预期区间和竞价量能要求，再比较次日实际反馈；不得把事后收益回填成事前预期。"
+    scope:
+      markets: ["A股"]
+      time_horizon: "T+1"
+      regimes: ["all"]
+    observable_inputs: ["prev_plan expected gap_low/gap_high/ratio_low", "T+1 auction gap", "auction amount ratio", "feedback state"]
+    invalidation_conditions: ["冻结预期被事后修改", "反馈日期与预案日期不匹配"]
+    unknown_when: ["无冻结预案", "竞价行情或T+1反馈缺失"]
+    source:
+      source_id: "dragon_quant_frozen_feedback_contract"
+      location: "dragon_quant/review_account/prep/review/feedback.py"
+    evidence_level: "existing_system_contract"
+    validation_status: "needs_walk_forward"
+
+  - principle_id: "cxq_leader_lifecycle"
+    title: "跟踪龙头生命周期与新老交接"
+    claim_type: "researcher_inference"
+    normalized_rule: "连续跟踪空间高度、主线角色、收阴、反包、开板和新老龙交接；历史不完整时只输出观察到的事件。"
+    scope:
+      markets: ["A股"]
+      time_horizon: "short_term"
+      regimes: ["emotion_cycle"]
+    observable_inputs: ["保存的prep快照", "本地日K", "first negative", "rebound", "engulfing candle", "broken board count"]
+    invalidation_conditions: ["候选失去总龙头身份", "主线地位明显走弱", "观察高度回撤"]
+    unknown_when: ["历史快照缺失", "日K或开板反馈缺失"]
+    source:
+      source_id: "dragon_quant_lifecycle_extension"
+      location: "dragon_quant/intelligence/evidence.py"
+    evidence_level: "researcher_inference"
+    validation_status: "needs_walk_forward"
+
+  - principle_id: "cxq_discipline_unknown"
+    title: "证据不足时保持纪律"
+    claim_type: "paraphrase"
+    normalized_rule: "核心市场数据或龙头身份缺失时保留 unknown / wait_for_evidence，不为了输出方向而猜测。"
+    scope:
+      markets: ["A股"]
+      time_horizon: "short_term"
+      regimes: ["all"]
+    observable_inputs: ["coverage status", "confidence", "unknowns", "risk flags"]
+    invalidation_conditions: []
+    unknown_when: ["关键字段缺失", "不同来源证据冲突"]
+    source:
+      source_id: "sherjy_chen_xiaoqun_public_skill"
+      url: "https://github.com/sherjy/chen-xiaoqun-skill"
+      location: "public SKILL.md / discipline and risk control concepts"
+    evidence_level: "public_framework_paraphrase"
+    validation_status: "unvalidated_with_user_private_materials"

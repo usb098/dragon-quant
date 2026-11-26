@@ -1,0 +1,42 @@
+schema_version: "elite_principle_v1"
+expert_id: "replace_with_expert_id"
+expert_version: "0.1.0"
+principle_id: "replace_with_unique_principle_id"
+title: "单条理念名称"
+claim_type: "verbatim | paraphrase | researcher_inference"
+source:
+  source_id: "SRC-0001"
+  file_name: "private_original.pdf"
+  page_or_location: "第 12 页 / 第 3 段"
+  author_or_speaker: "交易者/访谈对象"
+  recorded_at: null
+  original_sha256: null
+  parser_version: null
+statement:
+  original_excerpt: ""
+  normalized_rule: ""
+  interpretation: ""
+scope:
+  markets: ["A股"]
+  time_horizon: "short_term"
+  market_regimes: ["待定义"]
+  liquidity_constraints: []
+preconditions: []
+observable_inputs: []
+trigger_conditions: []
+expected_behavior: "observe | confirm | avoid | reduce_risk | exit | unknown"
+invalidation_conditions: []
+risk_boundaries: []
+unknown_when: []
+counterexamples: []
+evidence:
+  trade_sample_count: 0
+  positive_cases: []
+  negative_cases: []
+  unverified_claims: []
+  confidence: "low | medium | high"
+validation:
+  status: "unvalidated"
+  evaluation_version: null
+  walk_forward_windows: []
+  notes: []

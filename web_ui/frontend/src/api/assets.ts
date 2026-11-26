@@ -1,4 +1,4 @@
-import { getJson, qs } from "./client";
+import { getJson, postJson, qs } from "./client";
 
 // ─── prep ──────────────────────────────────────────────────────────────────
 
@@ -128,6 +128,185 @@ export interface PrepSnapshotView {
   slim: boolean;
   raw_size_bytes: number;
   derived: PrepDerived;
+}
+
+export interface DragonIntelligenceOpinion {
+  expert_id: string;
+  expert_name: string;
+  expert_version: string;
+  stance: "supportive" | "neutral" | "cautious" | "insufficient_evidence";
+  confidence: "high" | "medium" | "low";
+  posture: string;
+  summary: string;
+  evidence_for: string[];
+  evidence_against: string[];
+  unknowns: string[];
+  risk_flags: string[];
+}
+
+export interface DragonIntelligenceCandidate {
+  code: string;
+  name: string | null;
+  identity: string;
+  identity_label: string;
+  role: string | null;
+  confidence: string;
+  is_total_leader: boolean;
+  is_space_board: boolean;
+  sources: string[];
+  structure: {
+    height: number | null;
+    mainline_name: string | null;
+    mainline_rank: number | null;
+    mainline_score: number | null;
+    mainline_state: string | null;
+    role: string | null;
+    role_confidence: string;
+    role_basis: string | null;
+    is_space_board: boolean;
+    first_seal_time: string | null;
+    limit_up_type: string | null;
+    open_num: number | null;
+    amount: number | null;
+    turnover_rate: number | null;
+    main_net_amount: number | null;
+    is_one_word: boolean;
+  };
+  cohesion: {
+    status: string;
+    limit_up_num: number | null;
+    continuous_plate_num: number | null;
+    concentration: number | null;
+    member_count: number | null;
+    covered_count: number | null;
+    coverage_ratio: number | null;
+    advancer_ratio: number | null;
+    decliner_ratio: number | null;
+    mean_return_pct: number | null;
+    median_return_pct: number | null;
+    pairwise_correlation: number | null;
+    correlation_pairs: number;
+    synchronized_up_ratio: number | null;
+    synchronized_down_ratio: number | null;
+    history_sessions: number;
+    data_as_of: string | null;
+    note: string;
+  };
+  expectation_gap: {
+    status: "above_prior_expectation" | "below_prior_expectation" | "met_prior_expectation" | "mixed" | "unknown";
+    basis: string;
+    previous_trade_date: string | null;
+    evaluation_date?: string | null;
+    reason: string;
+    feedback_state?: string | null;
+    expectations_source?: string | null;
+    actual_gap_pct?: number | null;
+    actual_auction_ratio?: number | null;
+    expected_gap_low?: number | null;
+    expected_gap_high?: number | null;
+    expected_ratio_low?: number | null;
+    positive_evidence: string[];
+    negative_evidence: string[];
+    note: string;
+  };
+  lifecycle: {
+    stage: string;
+    label: string;
+    previous_total_leader_code: string | null;
+    total_leader_observed_streak: number;
+    observation_count: number;
+    candidate_observation_count?: number;
+    height_history: Array<{ trade_date: string | null; height: number }>;
+    observed_height_peak: number | null;
+    height_delta_vs_previous: number | null;
+    candle_context?: {
+      status: string;
+      current_date: string | null;
+      previous_date: string | null;
+      current_down_candle: boolean | null;
+      previous_down_candle: boolean | null;
+      bullish_engulfing_after_negative: boolean | null;
+      board_break_count: number | null;
+      note: string;
+    };
+    events: string[];
+    scope: string;
+  };
+  expert_opinions: DragonIntelligenceOpinion[];
+  collaboration: {
+    status: "single_expert" | "aligned" | "divergent" | "insufficient_evidence" | "non_comparable";
+    consensus_stance: string | null;
+    note: string;
+  };
+}
+
+export interface DragonIntelligenceResponse {
+  schema_version: string;
+  status: "ready" | "partial" | "unavailable";
+  reason: string | null;
+  trade_date: string | null;
+  read_only: boolean;
+  decision_impact: boolean;
+  market?: {
+    phase: string;
+    phase_label: string;
+    state: string;
+    score: number | null;
+  };
+  coverage?: {
+    complete: boolean;
+    observed_total: number | null;
+    reported_total: number | null;
+    status: string;
+  };
+  total_leader?: {
+    status: string;
+    code: string | null;
+    reason: string | null;
+    candidate_count: number;
+  };
+  candidate_pool_count?: number;
+  candidates: DragonIntelligenceCandidate[];
+  candidates_truncated?: boolean;
+  cohesion_summary?: {
+    boards_total: number;
+    boards_measured: number;
+    boards_partial: number;
+  };
+  expectation_proxy_summary?: {
+    candidates_with_comparable_prior_snapshot: number;
+    candidates_with_frozen_feedback?: number;
+    candidates_using_prior_snapshot_proxy?: number;
+    candidates_total: number;
+    basis: string;
+  };
+  lifecycle_summary?: {
+    history_snapshots_available: number;
+    max_history_snapshots: number;
+    scope: string;
+  };
+  experts: Array<{
+    id: string;
+    name: string;
+    version: string;
+    kind: string;
+    framework: string;
+    market_scope: string[];
+    time_horizon: string;
+    style: string;
+    collaboration_roles: string[];
+    principles: string[];
+  }>;
+  active_expert_ids?: string[];
+  collaboration: {
+    status: "single_expert" | "aligned" | "divergent" | "insufficient_evidence" | "non_comparable";
+    consensus_stance: string | null;
+    active_expert_ids: string[];
+    target_code: string | null;
+    note: string;
+  };
+  limitations?: string[];
+  next_checks?: string[];
 }
 
 export interface MarketSide {
@@ -620,6 +799,58 @@ export function fetchPrepSnapshot(tradeDate: string, slim = true) {
   );
 }
 
+/** 基于已保存快照的龙头理解结果；只读分析，不影响原有策略决策。 */
+export function fetchPrepDragonIntelligence(tradeDate: string, experts?: string[]) {
+  return getJson<DragonIntelligenceResponse>(
+    "/api/prep/" + encodeURIComponent(tradeDate) + "/dragon-intelligence" +
+      qs({ experts: experts?.join(",") })
+  );
+}
+
+export interface DragonAgentStatus {
+  provider: string;
+  enabled: boolean;
+  configured: boolean;
+  web_search_enabled: boolean;
+  model: string;
+  status: string;
+  detail: string;
+}
+
+export interface DragonAgentAnalysis {
+  stance: "supportive" | "neutral" | "cautious" | "insufficient_evidence";
+  confidence: "high" | "medium" | "low";
+  summary: string;
+  key_agreement: string[];
+  key_disagreement: string[];
+  evidence_for: string[];
+  evidence_against: string[];
+  unknowns: string[];
+  next_checks: string[];
+  caveats: string[];
+}
+
+export interface DragonAgentResearch {
+  provider: string;
+  model: string;
+  web_search_enabled: boolean;
+  trade_date: string | null;
+  generated_at: string;
+  analysis: DragonAgentAnalysis;
+  citations: Array<{ title: string; url: string }>;
+  read_only: boolean;
+  decision_impact: boolean;
+  sent_private_documents: boolean;
+  note: string;
+}
+
+export function fetchDragonAgentStatus() {
+  return getJson<DragonAgentStatus>("/api/intelligence/agent/status");
+}
+
+export function runPrepDragonAgent(tradeDate: string) {
+  return postJson<DragonAgentResearch>("/api/prep/" + encodeURIComponent(tradeDate) + "/dragon-intelligence/agent?source=v2", {});
+}
 export function fetchReviewContext(tradeDate: string) {
   return getJson<ReviewContext>(
     `/api/prep/${encodeURIComponent(tradeDate)}/review-context`

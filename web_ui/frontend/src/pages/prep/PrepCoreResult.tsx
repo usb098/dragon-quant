@@ -6,13 +6,14 @@
  * `position_pct > 0` 的标的（见 `buildRecommendedCandidates`），不从旧
  * `candidates[]` 兼容投影取信号；空值一律「数据不足」，不猜方向。
  */
-import type { PrepSnapshotView, PrepWatermark } from "../../api/assets";
+import type { DragonAgentResearch, DragonAgentStatus, DragonIntelligenceResponse, PrepSnapshotView, PrepWatermark } from "../../api/assets";
 import { Badge, type BadgeTone } from "../../components/Badge";
 import { type Column } from "../../components/DataTable";
 import { EmptyState } from "../../components/EmptyState";
 import { PaginatedDataTable } from "../../components/PaginatedDataTable";
 import { fmtNum } from "../../lib/format";
 import { UNKNOWN_REASON_LABELS, labelOf } from "../../lib/labels";
+import { DragonIntelligencePanel } from "./DragonIntelligencePanel";
 import { LeaderPanel } from "./LeaderPanel";
 import { MainlineTable } from "./MainlineTable";
 import { MarketStrip } from "./MarketStrip";
@@ -81,9 +82,25 @@ function buildLabel(positionPct: number | null): string {
 export function PrepCoreResult({
   snapshot,
   watermark,
+  dragonIntelligence,
+  dragonIntelligenceLoading,
+  dragonIntelligenceError,
+  agentStatus,
+  agentResearch,
+  agentLoading,
+  agentError,
+  onRunAgent,
 }: {
   snapshot: PrepSnapshotView | null;
   watermark: PrepWatermark | null;
+  dragonIntelligence: DragonIntelligenceResponse | null;
+  dragonIntelligenceLoading: boolean;
+  dragonIntelligenceError: string | null;
+  agentStatus: DragonAgentStatus | null;
+  agentResearch: DragonAgentResearch | null;
+  agentLoading: boolean;
+  agentError: string | null;
+  onRunAgent: () => void;
 }) {
   const market = snapshot ? buildMarketView(snapshot) : null;
   const leaderAnalysis = snapshot ? buildLeaderAnalysisView(snapshot) : null;
@@ -112,6 +129,23 @@ export function PrepCoreResult({
       <div className="grid gap-2">
         <div className="text-body font-medium text-ink">空间板与总龙头</div>
         <LeaderPanel data={leaderAnalysis} />
+      </div>
+
+      <div className="grid gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="text-body font-medium text-ink">龙头理解引擎</div>
+          <Badge tone="outline">只读研究</Badge>
+        </div>
+        <DragonIntelligencePanel
+          data={dragonIntelligence}
+          loading={dragonIntelligenceLoading}
+          error={dragonIntelligenceError}
+          agentStatus={agentStatus}
+          agentResearch={agentResearch}
+          agentLoading={agentLoading}
+          agentError={agentError}
+          onRunAgent={onRunAgent}
+        />
       </div>
 
       <div className="grid gap-2">

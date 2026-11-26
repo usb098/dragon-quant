@@ -120,3 +120,18 @@ python -m dragon_quant prep --json                        # 完整复盘 JSON（
 - **路由顺序硬要求**：`routers/accuracy.py` 必须先于 `routers/assets.py` 注册，避免静态 `/api/prep/accuracy`、`/api/auction/accuracy` 被 `{trade_date}` 动态路由吞掉。既有 `plan-followup`、`auction/{date}/effect`、`/api/prep/{date}` 语义不变（仅日历追加字段）。
 - **前端页面（3B）**：`/prep` 视觉顺序 = **年度日历（PageHeader 后第一个内容区块）** → 核心结果 → 当前 T 日效果 → 当日资产明细 → 全历史准确率（2026-11-05 恢复日历首块；市场情绪 / 主线 / 是否建仓 / 推荐建仓标的 / 资产完备与异常摘要 → 真主线次日涨跌 + 推荐/不推荐逐股严格收益/回撤 + 组内汇总 → 资产明细 → 准确率）。`/auction` 四区块 = 年度日历 → 竞价结果（只删风险事件 / 决策质量 / 关键证据三列，保留 T+1/3/5）→ 当日资产采集与异常 → 全历史准确率。两页共用 `AssetCalendar`（GitHub Contributions 风格、横滚、键盘与 aria）+ **`CalendarPanel`（共享可折叠容器，默认展开；展开时下沿居中「向上 chevron + 收起」，收起后紧凑面板上沿居中「向下 chevron + 展开」，保留日期摘要与已加载数据，不重新请求）**；sticky `top` 用 AppShell 实测的 `--dq-header-h`（窄屏顶栏换行也正确，禁止固定 `top-14`）。`AccuracyBoard` 固定 `/api/prep/accuracy` / `/api/auction/accuracy`，不随选中日变化；明确「历史样本描述性统计，不构成策略有效性结论」。默认日期用后端 `default_date`，URL `?date=` 优先且支持前进/后退。旧「结论」「运行概况」「上次计划复盘」与竞价窗口成效聚合不再展示；旧 API 全部保留。
 - 测试 owner：`test_dashboard_calendar_defaults.py`、`test_dashboard_prep_effect.py`、`test_dashboard_accuracy.py`、`test_assets_db_calendar.py`、`test_web_backend.py`、`test_web_frontend_ops.py`、`test_web_frontend_results.py`、`test_web_frontend_dashboard_followup.py`、E2E `test_dashboard.py` D10/D12；浏览器交互证据脚本见 `docs/solutions/2026-11-05-dashboard-user-reported-fixes.md`（隔离 fixture + Playwright）。
+
+
+## 龙头理解工作台（只读增量）
+
+- 新增 GET /api/prep/{trade_date}/dragon-intelligence，默认读取 v2 已保存快照，并可通过 experts 参数选择已注册的独立理念专家。
+- 端点读取当前与最近前序 prep 快照，纯计算生成结构化候选、龙头身份、市场阶段、合力代理、生命周期观察、独立专家观点及协同分歧；不触网、不写库。
+- 第一位专家为陈小群公开理念的确定性规则适配器。该适配器不代表本人、不做角色扮演，也不生成买卖指令。
+- 单专家输出标记 single_expert，不称为共识；多专家观点冲突保留 divergent 与各自证据，不做简单分数平均。
+- read_only=true、decision_impact=false 是固定契约；该结果不得影响现有评分、资格、仓位或交易执行。
+- 预期差缺少独立事前共识基线时为 unknown；市场合力当前使用板块涨停数、持续天数与集中度作为静态代理；生命周期仅用最近前序快照粗略推断。
+
+- 多专家协同状态包括 single_expert / aligned / divergent / insufficient_evidence / non_comparable；只有适用市场与持有周期可比时才判断共识或分歧，每只候选单独保留协同状态与各专家原始观点。
+
+
+- 龙头理解增量：市场合力读取 `ths_block_top` 成分和 `stock_daily` 近端日 K；预期差优先使用 `prev_plan.feedback_plans[].expected` 与当前快照 `feedback.items`，配置回退/前序快照代理均单独标注；生命周期读取最近最多 10 份快照，并结合本地日 K、feedback.evidence.broken_count 识别近端收阴、转强、阳线反包和盘中开板。上述事件只在字段完整时生成，缺失不视作无事件。
