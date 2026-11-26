@@ -73,3 +73,15 @@
 - **事前预期差**：优先比较 T-1 `prev_plan.feedback_plans[].expected` 冻结的 gap_low/gap_high/ratio_low 与 T 日 `feedback.items` 里的实际竞价缺口、竞价额比和反馈状态。来源标记为 frozen_previous_plan_feedback 或 frozen_config_expectation；缺失时退回 prior_snapshot_framework_proxy / unknown。它不是全市场一致预期。
 - **生命周期**：最多回溯 10 份快照，并使用当前 `stock_daily` 与反馈 evidence 补充近端首次收阴、收阴后转强、阳线实体反包与盘中开板事件。日 K 或反馈不足时未评估；观察连续数不是完整交易日连续数。
 - **公网安全**：`DQ_PUBLIC_DEPLOYMENT=1` 时强制 Basic Auth（密码至少 32 字符）与 `DQ_ALLOWED_HOSTS`。`/health` 仅供部署健康探针绕过认证与 Host 白名单；其它路由仍需认证。
+
+
+## 用户资料蒸馏 v0.3 与条件式模式选择
+
+- 派生研究资料位于 docs/research/chen-xiaoqun/；不包含原始 PDF、PNG、ZIP 或视频。14 条候选原则全部标记 research_only，并保留归因、来源等级、置信度与反例边界。
+- 陈小群 Adapter 0.2.0 新增 decision_framework 输出，核心实现 dragon_quant/intelligence/decision_framework.py。
+- 决策顺序：市场状态 → 主线强化 → 股票角色 → 成分股合力 → 冻结预期反馈 → 模式比较 → 实时确认项。
+- 模式分别评估：breakout_follow（打板/接力）、pullback_absorption（低吸/分歧承接）、weak_to_strong（弱转强）、trend_follow（趋势跟随）、repair_rebound（反核/修复）。
+- 每种模式返回 conditional_setup / blocked / insufficient_evidence，以及支持证据、否决条件和盘中确认项。
+- 总状态为 stand_aside / conditional_watch / wait_for_confirmation / insufficient_data；永远 can_execute=false，不输出交易价位、仓位、下单动作。
+- 日终 prep 快照缺少次日竞价、盘口、分时量价和可成交性时，条件观察不能升级为买点。LLM 只可对证据一致性进行研究审查，不得推翻确定性风险门。
+- 规则阈值目前属于研究启发式，需按模式/市场周期进行时间样本外验证；不承诺提高某个胜率。
