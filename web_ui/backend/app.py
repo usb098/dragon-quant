@@ -12,6 +12,7 @@ def create_app(settings: DashboardSettings | None = None):
     from fastapi import FastAPI
     from fastapi.responses import JSONResponse
     from .auth import BasicAuthMiddleware, HealthProbeTrustedHostMiddleware
+    from .leaders_page import LEADERS_HTML
     from .bs_runner import BsRunner
     from .errors import install_error_handlers
     from .review_runner import ReviewJobRunner
@@ -77,6 +78,11 @@ def create_app(settings: DashboardSettings | None = None):
     @app.get("/health", include_in_schema=False)
     def health():
         return {"status": "ok"}
+
+    @app.get("/leaders", include_in_schema=False)
+    def live_leader_dashboard():
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(LEADERS_HTML, headers={"Cache-Control": "no-store"})
 
     # 必须在 app.frontend 之前注册：未知 /api 路径返回 404 JSON，
     # 绝不被 SPA fallback 吃成 index.html。
