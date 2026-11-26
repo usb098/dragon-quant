@@ -14,6 +14,10 @@ EXPERT_META = {
     "version": "0.1.0",
     "kind": "deterministic_framework",
     "framework": "public_framework_distillation_v1",
+    "market_scope": ["A股"],
+    "time_horizon": "short_term",
+    "style": "emotion_mainline_leader",
+    "collaboration_roles": ["core_leader_judgement", "emotion_cycle", "discipline"],
     "principles": [
         "情绪周期",
         "只做主线龙头",

@@ -28,6 +28,10 @@ def test_dragon_intelligence_panel_preserves_opinions_and_unknowns():
     assert "不改变现有评分、资格、仓位或买卖规则" in panel
     assert "single_expert" in panel
     assert "divergent" in panel
+    assert "non_comparable" in panel
+    assert "opinions.map" in panel
+    assert "candidate.collaboration.note" in panel
+    assert "expert.market_scope.join" in panel
 
 
 def test_frontend_does_not_treat_the_expert_as_a_trading_signal():

@@ -187,6 +187,11 @@ export interface DragonIntelligenceCandidate {
     scope: string;
   };
   expert_opinions: DragonIntelligenceOpinion[];
+  collaboration: {
+    status: "single_expert" | "aligned" | "divergent" | "insufficient_evidence" | "non_comparable";
+    consensus_stance: string | null;
+    note: string;
+  };
 }
 
 export interface DragonIntelligenceResponse {
@@ -223,11 +228,15 @@ export interface DragonIntelligenceResponse {
     version: string;
     kind: string;
     framework: string;
+    market_scope: string[];
+    time_horizon: string;
+    style: string;
+    collaboration_roles: string[];
     principles: string[];
   }>;
   active_expert_ids?: string[];
   collaboration: {
-    status: "single_expert" | "aligned" | "divergent" | "insufficient_evidence";
+    status: "single_expert" | "aligned" | "divergent" | "insufficient_evidence" | "non_comparable";
     consensus_stance: string | null;
     active_expert_ids: string[];
     target_code: string | null;

@@ -232,10 +232,36 @@ def _build_candidate_rows(
     return output
 
 
-def _collaboration_status(candidate_rows: list[dict], active_experts: list[dict]) -> dict:
-    target = next((row for row in candidate_rows if row["is_total_leader"]), None)
-    target = target or (candidate_rows[0] if candidate_rows else None)
-    opinions = target.get("expert_opinions", []) if target else []
+def _collaboration_for_opinions(
+    opinions: list[dict], active_experts: list[dict]
+) -> dict:
+    if not opinions:
+        return {
+            "status": "insufficient_evidence",
+            "consensus_stance": None,
+            "note": "当前没有候选的专家观点；只展示客观量化证据，不形成理念判断。",
+        }
+    if len(active_experts) > 1:
+        profiles: set[tuple[tuple[str, ...], str]] = set()
+        for expert in active_experts:
+            meta = expert.get("meta") if isinstance(expert, Mapping) else {}
+            meta = meta if isinstance(meta, Mapping) else {}
+            scope = meta.get("market_scope")
+            horizon = meta.get("time_horizon")
+            if not isinstance(scope, list) or not scope or not isinstance(horizon, str) or not horizon:
+                return {
+                    "status": "non_comparable",
+                    "consensus_stance": None,
+                    "note": "至少一位专家未声明适用市场或持有周期；先分别展示，不强行合并观点。",
+                }
+            profiles.add((tuple(sorted(str(item) for item in scope)), horizon))
+        if len(profiles) > 1:
+            return {
+                "status": "non_comparable",
+                "consensus_stance": None,
+                "note": "专家适用市场或持有周期不同；按各自适用范围分组观察，不把不同交易系统做投票。",
+            }
+
     stances = [
         item.get("stance") for item in opinions
         if item.get("stance") not in (None, "insufficient_evidence")
@@ -261,12 +287,18 @@ def _collaboration_status(candidate_rows: list[dict], active_experts: list[dict]
         status = "divergent"
         consensus = None
         note = "专家观点存在分歧；分别展示支持与反对证据，不以平均分掩盖冲突。"
+    return {"status": status, "consensus_stance": consensus, "note": note}
+
+
+def _collaboration_status(candidate_rows: list[dict], active_experts: list[dict]) -> dict:
+    target = next((row for row in candidate_rows if row["is_total_leader"]), None)
+    target = target or (candidate_rows[0] if candidate_rows else None)
+    opinions = target.get("expert_opinions", []) if target else []
+    summary = _collaboration_for_opinions(opinions, active_experts)
     return {
-        "status": status,
-        "consensus_stance": consensus,
+        **summary,
         "active_expert_ids": [item["meta"]["id"] for item in active_experts],
         "target_code": target.get("code") if target else None,
-        "note": note,
     }
 
 
@@ -320,12 +352,15 @@ def analyze_dragon_intelligence(
         },
         "coverage_complete": coverage_complete,
     }
+    active_meta = [{"meta": dict(item["meta"])} for item in selected_experts]
     for candidate in candidate_rows:
         for expert in selected_experts:
             opinion = expert["analyze_candidate"](context, candidate)
             candidate["expert_opinions"].append(opinion)
+        candidate["collaboration"] = _collaboration_for_opinions(
+            candidate["expert_opinions"], active_meta
+        )
 
-    active_meta = [{"meta": dict(item["meta"])} for item in selected_experts]
     collaboration = _collaboration_status(candidate_rows, active_meta)
     limitations = [
         "本引擎只读取已保存的 prep 快照，不调用实时行情或外部新闻。",

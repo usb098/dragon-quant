@@ -13,7 +13,7 @@
 
 ## Expert Adapter 契约
 
-每位游资理念必须保持独立命名空间、版本、知识库与 Adapter。Adapter 接收统一的只读 context 和单个 candidate，返回 JSON-compatible 观点：
+每位游资理念必须保持独立命名空间、版本、知识库与 Adapter。专家元数据还应声明 market_scope、time_horizon、style 和 collaboration_roles。Adapter 接收统一的只读 context 和单个 candidate，返回 JSON-compatible 观点：
 
 - stance：supportive / neutral / cautious / insufficient_evidence。
 - confidence：high / medium / low。
@@ -29,8 +29,9 @@
 - 同一份客观事实分别送给各专家，专家之间不读取彼此判断。
 - 协同层比较方向、置信度、证据质量和适用场景。
 - 只有一个专家时标记 single_expert，不得称为共识。
-- 多专家一致时标记 aligned，并保留每家证据链。
-- 出现相反判断时标记 divergent，展示分歧原因，不做简单平均分。
+- 多专家适用市场与持有周期一致时才比较方向：一致标记 aligned；相反标记 divergent，并展示分歧原因，不做简单平均分。
+- 市场范围或持有周期不同/未声明时标记 non_comparable，按各自适用范围分组展示，不强行投票。
+- 每只候选单独计算专家协同状态；全局摘要只针对总龙头或首个候选，不能替代逐股观点。
 - 适用周期、持仓周期、交易品种和流动性偏好不一致时，先分组比较，不强求统一结论。
 - 可扩展的协同方式包括共识验证、互补视角、反方质询和风险审查；协调器不能覆盖专家原始输出。
 

@@ -130,3 +130,5 @@ python -m dragon_quant prep --json                        # 完整复盘 JSON（
 - 单专家输出标记 single_expert，不称为共识；多专家观点冲突保留 divergent 与各自证据，不做简单分数平均。
 - read_only=true、decision_impact=false 是固定契约；该结果不得影响现有评分、资格、仓位或交易执行。
 - 预期差缺少独立事前共识基线时为 unknown；市场合力当前使用板块涨停数、持续天数与集中度作为静态代理；生命周期仅用最近前序快照粗略推断。
+
+- 多专家协同状态包括 single_expert / aligned / divergent / insufficient_evidence / non_comparable；只有适用市场与持有周期可比时才判断共识或分歧，每只候选单独保留协同状态与各专家原始观点。

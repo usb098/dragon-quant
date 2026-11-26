@@ -56,6 +56,7 @@ def test_confirmed_total_leader_is_explained_without_overwriting_review_scores()
     assert candidate["cohesion"]["status"] == "partial_proxy"
     assert candidate["expectation_gap"]["status"] == "unknown"
     assert candidate["expert_opinions"][0]["stance"] == "supportive"
+    assert candidate["collaboration"]["status"] == "single_expert"
 
 
 def test_incomplete_market_coverage_never_confirms_total_leader():
@@ -119,8 +120,8 @@ def test_divergent_experts_preserve_disagreement_without_averaging():
         ],
     }]
     experts = [
-        {"meta": {"id": "chen_xiaoqun"}},
-        {"meta": {"id": "expert_two"}},
+        {"meta": {"id": "chen_xiaoqun", "market_scope": ["A股"], "time_horizon": "short_term"}},
+        {"meta": {"id": "expert_two", "market_scope": ["A股"], "time_horizon": "short_term"}},
     ]
     result = _collaboration_status(candidates, experts)
     assert result["status"] == "divergent"
@@ -137,3 +138,19 @@ def test_no_enabled_experts_does_not_claim_single_expert_consensus():
     )
     assert result["status"] == "insufficient_evidence"
     assert result["consensus_stance"] is None
+
+
+
+def test_different_expert_horizons_are_not_voted_together():
+    from dragon_quant.intelligence.engine import _collaboration_for_opinions
+
+    result = _collaboration_for_opinions(
+        [{"stance": "supportive"}, {"stance": "cautious"}],
+        [
+            {"meta": {"id": "ultra_short", "market_scope": ["A股"], "time_horizon": "ultra_short"}},
+            {"meta": {"id": "swing", "market_scope": ["A股"], "time_horizon": "swing"}},
+        ],
+    )
+    assert result["status"] == "non_comparable"
+    assert result["consensus_stance"] is None
+    assert "持有周期不同" in result["note"]

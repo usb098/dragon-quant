@@ -36,11 +36,12 @@ function collaborationLabel(value: string): string {
     aligned: "观点一致",
     divergent: "观点分歧",
     insufficient_evidence: "证据不足",
+    non_comparable: "适用范围不同",
   } as Record<string, string>)[value] ?? value;
 }
 
 function CandidateCard({ candidate }: { candidate: DragonIntelligenceCandidate }) {
-  const opinion = candidate.expert_opinions[0];
+  const opinions = candidate.expert_opinions;
   return (
     <article className="grid gap-3 rounded-lg border border-hairline p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -48,6 +49,9 @@ function CandidateCard({ candidate }: { candidate: DragonIntelligenceCandidate }
           <span className="font-mono text-body font-semibold text-ink">{candidate.code}</span>
           <span className="text-body text-ink">{candidate.name ?? "—"}</span>
           <Badge tone="outline">{candidate.identity_label}</Badge>
+          <Badge tone={candidate.collaboration.status === "divergent" ? "warning" : "normal"}>
+            {collaborationLabel(candidate.collaboration.status)}
+          </Badge>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone={candidate.confidence === "high" ? "positive" : "muted"}>
@@ -89,42 +93,47 @@ function CandidateCard({ candidate }: { candidate: DragonIntelligenceCandidate }
         </div>
       </div>
 
-      {opinion ? (
-        <div className="grid gap-2 rounded-md border border-hairline px-3 py-2.5">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-body font-medium text-ink">{opinion.expert_name}</span>
-            <Badge tone={stanceTone(opinion.stance)}>{stanceLabel(opinion.stance)}</Badge>
-            <Badge tone="muted">{confidenceLabel(opinion.confidence)}</Badge>
-          </div>
-          <p className="text-body text-ink-2">{opinion.summary}</p>
-          {opinion.evidence_for.length ? (
-            <div className="grid gap-1">
-              <div className="text-caption font-medium text-ink-3">支持证据</div>
-              {opinion.evidence_for.map((item) => (
-                <div key={item} className="text-body text-ink-2">• {item}</div>
-              ))}
+      {opinions.length ? (
+        <div className="grid gap-2">
+          {opinions.map((opinion) => (
+            <div key={opinion.expert_id} className="grid gap-2 rounded-md border border-hairline px-3 py-2.5">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-body font-medium text-ink">{opinion.expert_name}</span>
+                <Badge tone={stanceTone(opinion.stance)}>{stanceLabel(opinion.stance)}</Badge>
+                <Badge tone="muted">{confidenceLabel(opinion.confidence)}</Badge>
+              </div>
+              <p className="text-body text-ink-2">{opinion.summary}</p>
+              {opinion.evidence_for.length ? (
+                <div className="grid gap-1">
+                  <div className="text-caption font-medium text-ink-3">支持证据</div>
+                  {opinion.evidence_for.map((item) => (
+                    <div key={item} className="text-body text-ink-2">• {item}</div>
+                  ))}
+                </div>
+              ) : null}
+              {opinion.evidence_against.length ? (
+                <div className="grid gap-1">
+                  <div className="text-caption font-medium text-ink-3">反向证据</div>
+                  {opinion.evidence_against.map((item) => (
+                    <div key={item} className="text-body text-ink-2">• {item}</div>
+                  ))}
+                </div>
+              ) : null}
+              {opinion.unknowns.length ? (
+                <div className="grid gap-1">
+                  <div className="text-caption font-medium text-ink-3">尚未验证</div>
+                  {opinion.unknowns.slice(0, 3).map((item) => (
+                    <div key={item} className="text-body text-ink-3">• {item}</div>
+                  ))}
+                </div>
+              ) : null}
             </div>
-          ) : null}
-          {opinion.evidence_against.length ? (
-            <div className="grid gap-1">
-              <div className="text-caption font-medium text-ink-3">反向证据</div>
-              {opinion.evidence_against.map((item) => (
-                <div key={item} className="text-body text-ink-2">• {item}</div>
-              ))}
-            </div>
-          ) : null}
-          {opinion.unknowns.length ? (
-            <div className="grid gap-1">
-              <div className="text-caption font-medium text-ink-3">尚未验证</div>
-              {opinion.unknowns.slice(0, 3).map((item) => (
-                <div key={item} className="text-body text-ink-3">• {item}</div>
-              ))}
-            </div>
-          ) : null}
+          ))}
         </div>
       ) : (
         <div className="text-body text-ink-3">当前没有启用的专家观点。</div>
       )}
+      <div className="text-caption text-ink-3">{candidate.collaboration.note}</div>
     </article>
   );
 }
@@ -194,7 +203,7 @@ export function DragonIntelligencePanel({
         <div className="flex flex-wrap gap-2">
           {data.experts.map((expert) => (
             <Badge key={expert.id} tone={data.active_expert_ids?.includes(expert.id) ? "positive" : "muted"}>
-              {expert.name} · v{expert.version}
+              {expert.name} · {expert.market_scope.join("、")} · {expert.time_horizon}
             </Badge>
           ))}
         </div>
