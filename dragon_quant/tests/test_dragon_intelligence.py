@@ -154,3 +154,22 @@ def test_different_expert_horizons_are_not_voted_together():
     assert result["status"] == "non_comparable"
     assert result["consensus_stance"] is None
     assert "持有周期不同" in result["note"]
+
+
+
+def test_missing_expert_evidence_is_not_mislabelled_as_divergence():
+    from dragon_quant.intelligence.engine import _collaboration_for_opinions
+
+    result = _collaboration_for_opinions(
+        [
+            {"stance": "supportive"},
+            {"stance": "insufficient_evidence"},
+        ],
+        [
+            {"meta": {"id": "chen_xiaoqun", "market_scope": ["A股"], "time_horizon": "short_term"}},
+            {"meta": {"id": "expert_two", "market_scope": ["A股"], "time_horizon": "short_term"}},
+        ],
+    )
+    assert result["status"] == "insufficient_evidence"
+    assert result["consensus_stance"] is None
+    assert "证据缺口" in result["note"] or "证据" in result["note"]

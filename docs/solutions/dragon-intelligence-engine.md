@@ -31,7 +31,7 @@ flowchart TD
 - 每个专家有独立 id、版本、理念元数据、独立 adapter 与观点输出。
 - Adapter 输入相同的客观市场事实，不能读取或改写其他专家的观点。
 - 观点至少包含 stance、confidence、summary、evidence_for、evidence_against、unknowns、risk_flags；专家元数据声明 market_scope、time_horizon、style、collaboration_roles。
-- 协同层不做简单分数平均。单一专家标记 single_expert；同市场/同周期观点一致标记 aligned；结论冲突标记 divergent；适用市场或周期不同标记 non_comparable 并分组展示。每只候选独立计算协同状态。
+- 协同层不做简单分数平均。单一专家标记 single_expert；同市场/同周期观点一致标记 aligned；结论冲突标记 divergent；适用市场或周期不同标记 non_comparable 并分组展示；任一专家证据不足时标记 insufficient_evidence。每只候选独立计算协同状态。
 - 后续接入真实 LLM Agent 时，Agent 负责公告/政策/产业链与预期差研究；必须提供来源、发布时间、事实时间和证据状态。无证据时返回 unknown。
 
 ## 当前实现边界
