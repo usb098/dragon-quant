@@ -38,3 +38,29 @@ def test_frontend_does_not_treat_the_expert_as_a_trading_signal():
     panel = _read(SRC / "pages" / "prep" / "DragonIntelligencePanel.tsx")
     assert "买入" not in panel
     assert "卖出" not in panel
+
+
+
+def test_prep_page_runs_llm_agent_only_after_explicit_click():
+    page = _read(SRC / "pages" / "prep" / "PrepPage.tsx")
+    api = _read(SRC / "api" / "assets.ts")
+    panel = _read(SRC / "pages" / "prep" / "DragonIntelligencePanel.tsx")
+    assert "fetchDragonAgentStatus" in page
+    assert "runPrepDragonAgent(date)" in page
+    assert "onRunAgent={runAgent}" in page
+    assert "/api/intelligence/agent/status" in api
+    assert "LLM Agent 研究" in panel
+    assert "sent_private_documents" in api
+
+
+def test_panel_shows_frozen_expectation_and_observable_lifecycle_events():
+    panel = _read(SRC / "pages" / "prep" / "DragonIntelligencePanel.tsx")
+    for token in (
+        "frozen_previous_plan_feedback",
+        "actual_gap_pct",
+        "expected_gap_high",
+        "bullish_engulfing_after_negative",
+        "first_negative_in_observed_window",
+        "intraday_board_break_observed",
+    ):
+        assert token in panel

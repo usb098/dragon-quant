@@ -1,0 +1,34 @@
+schema_version: "expert_evaluation_v1"
+expert_id: "replace_with_expert_id"
+expert_version: "0.1.0"
+evaluation_id: "replace_with_unique_evaluation_id"
+sample:
+  date_from: "YYYY-MM-DD"
+  date_to: "YYYY-MM-DD"
+  trade_count: 0
+  distinct_symbols: 0
+  market_regimes: []
+  include_losing_trades: true
+  include_unfilled_orders: true
+method:
+  split: "chronological"
+  validation: "walk_forward"
+  transaction_costs_included: true
+  slippage_assumption: "document explicitly"
+  limit_up_fillability_model: "document explicitly"
+metrics:
+  principle_compliance_rate: null
+  net_mean_return_pct: null
+  net_median_return_pct: null
+  max_drawdown_pct: null
+  tail_loss_pct: null
+  excluded_or_unverifiable_count: null
+counterexamples: []
+ablation:
+  baseline_result: null
+  without_principle_result: null
+  incremental_effect: null
+limitations: []
+decision: "research_only | adapter_candidate | validated_for_shadow"
+reviewed_by: null
+reviewed_at: null

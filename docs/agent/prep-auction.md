@@ -132,3 +132,6 @@ python -m dragon_quant prep --json                        # 完整复盘 JSON（
 - 预期差缺少独立事前共识基线时为 unknown；市场合力当前使用板块涨停数、持续天数与集中度作为静态代理；生命周期仅用最近前序快照粗略推断。
 
 - 多专家协同状态包括 single_expert / aligned / divergent / insufficient_evidence / non_comparable；只有适用市场与持有周期可比时才判断共识或分歧，每只候选单独保留协同状态与各专家原始观点。
+
+
+- 龙头理解增量：市场合力读取 `ths_block_top` 成分和 `stock_daily` 近端日 K；预期差优先使用 `prev_plan.feedback_plans[].expected` 与当前快照 `feedback.items`，配置回退/前序快照代理均单独标注；生命周期读取最近最多 10 份快照，并结合本地日 K、feedback.evidence.broken_count 识别近端收阴、转强、阳线反包和盘中开板。上述事件只在字段完整时生成，缺失不视作无事件。

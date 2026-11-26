@@ -1,4 +1,6 @@
 import type {
+  DragonAgentResearch,
+  DragonAgentStatus,
   DragonIntelligenceCandidate,
   DragonIntelligenceResponse,
 } from "../../api/assets";
@@ -40,6 +42,60 @@ function collaborationLabel(value: string): string {
   } as Record<string, string>)[value] ?? value;
 }
 
+function ratioLabel(value: number | null): string {
+  return value == null ? "—" : (value * 100).toFixed(1) + "%";
+}
+
+function expectationLabel(value: string, basis: string): string {
+  if (basis === "frozen_previous_plan_feedback" || basis === "frozen_config_expectation") {
+    return ({
+      above_prior_expectation: "超出冻结预期",
+      below_prior_expectation: "低于冻结预期",
+      met_prior_expectation: "符合冻结预期",
+      mixed: "正反证据并存",
+      unknown: "未知",
+    } as Record<string, string>)[value] ?? "未知";
+  }
+  return ({
+    above_prior_expectation: "高于前序框架",
+    below_prior_expectation: "低于前序框架",
+    met_prior_expectation: "符合前序框架",
+    mixed: "正反证据并存",
+    unknown: "未知",
+  } as Record<string, string>)[value] ?? "未知";
+}
+
+function expectationTone(value: string): BadgeTone {
+  if (value === "above_prior_expectation") return "positive";
+  if (value === "below_prior_expectation") return "warning";
+  return "muted";
+}
+
+function stanceLabel(value: string): string {
+  return ({
+    supportive: "支持",
+    neutral: "中性观察",
+    cautious: "谨慎",
+    insufficient_evidence: "证据不足",
+  } as Record<string, string>)[value] ?? value;
+}
+
+function lifecycleEventLabel(value: string): string {
+  return ({
+    leader_handoff: "新老龙交接",
+    first_total_leader_observation: "首次确认总龙头",
+    height_new_high: "近期高度新高",
+    height_retraced: "高度回落",
+    total_leader_lost: "失去总龙头身份",
+    role_changed: "角色变化",
+    first_negative_in_observed_window: "近端首次收阴",
+    negative_day_observed: "出现收阴",
+    rebound_after_negative: "收阴后转强",
+    bullish_engulfing_after_negative: "收阴后阳线反包",
+    intraday_board_break_observed: "盘中出现开板",
+  } as Record<string, string>)[value] ?? value;
+}
+
 function CandidateCard({ candidate }: { candidate: DragonIntelligenceCandidate }) {
   const opinions = candidate.expert_opinions;
   return (
@@ -61,7 +117,7 @@ function CandidateCard({ candidate }: { candidate: DragonIntelligenceCandidate }
         </div>
       </div>
 
-      <div className="grid gap-2 md:grid-cols-3">
+      <div className="grid gap-2 md:grid-cols-4">
         <div className="rounded-md bg-panel-2 px-2.5 py-2">
           <div className="text-caption text-ink-3">主线与角色</div>
           <div className="text-body text-ink">
@@ -92,6 +148,88 @@ function CandidateCard({ candidate }: { candidate: DragonIntelligenceCandidate }
             {candidate.cohesion.status === "partial_proxy" ? "静态代理" : "数据不足"}
           </div>
         </div>
+      </div>
+
+      <div className="grid gap-2 md:grid-cols-2">
+        <div className="grid gap-1 rounded-md border border-hairline px-3 py-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-caption text-ink-3">事前预期与 T+1 反馈</span>
+            <Badge tone={expectationTone(candidate.expectation_gap.status)}>
+              {expectationLabel(candidate.expectation_gap.status, candidate.expectation_gap.basis)}
+            </Badge>
+          </div>
+          <div className="text-caption text-ink-3">
+            {candidate.expectation_gap.basis === "frozen_previous_plan_feedback"
+              ? "来源：T-1 冻结计划 + T+1 实际反馈"
+              : candidate.expectation_gap.basis === "frozen_config_expectation"
+                ? "来源：T-1 冻结的系统配置预期"
+                : "来源：前序快照框架代理"}
+            {" · "}前序日 {candidate.expectation_gap.previous_trade_date ?? "—"}
+          </div>
+          {candidate.expectation_gap.actual_gap_pct != null ? (
+            <div className="text-body text-ink-2">
+              实际竞价缺口 {candidate.expectation_gap.actual_gap_pct.toFixed(2)}%
+              {" · "}冻结区间{" "}
+              {candidate.expectation_gap.expected_gap_low?.toFixed(2) ?? "—"}%–
+              {candidate.expectation_gap.expected_gap_high?.toFixed(2) ?? "—"}%
+            </div>
+          ) : null}
+          {candidate.expectation_gap.actual_auction_ratio != null ? (
+            <div className="text-body text-ink-2">
+              竞价额比 {candidate.expectation_gap.actual_auction_ratio.toFixed(2)}
+              {" · "}冻结下限 {candidate.expectation_gap.expected_ratio_low?.toFixed(2) ?? "—"}
+            </div>
+          ) : null}
+          {candidate.expectation_gap.positive_evidence.map((item) => (
+            <div key={item} className="text-body text-ink-2">↑ {item}</div>
+          ))}
+          {candidate.expectation_gap.negative_evidence.map((item) => (
+            <div key={item} className="text-body text-ink-3">↓ {item}</div>
+          ))}
+          <div className="text-caption text-ink-3">{candidate.expectation_gap.note}</div>
+        </div>
+        <div className="grid gap-1 rounded-md border border-hairline px-3 py-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-caption text-ink-3">龙头生命周期</span>
+            <Badge tone="normal">{candidate.lifecycle.label}</Badge>
+          </div>
+          <div className="text-body text-ink-2">
+            总龙头观察连续 {candidate.lifecycle.total_leader_observed_streak} 份快照
+            · 历史观察 {candidate.lifecycle.observation_count} 份
+          </div>
+          <div className="text-caption text-ink-3">
+            观察高度峰值 {candidate.lifecycle.observed_height_peak ?? "—"} 板
+            {" · "}较前一观察{" "}
+            {candidate.lifecycle.height_delta_vs_previous == null
+              ? "—"
+              : candidate.lifecycle.height_delta_vs_previous + " 板"}
+          </div>
+          {candidate.lifecycle.events.map((event) => (
+            <Badge key={event} tone="warning">{lifecycleEventLabel(event)}</Badge>
+          ))}
+          {candidate.lifecycle.candle_context ? (
+            <div className="text-caption text-ink-3">
+              日 K 事件覆盖：{candidate.lifecycle.candle_context.status === "measured" ? "已有最近两根日 K" : "历史不足"}
+              {" · "}盘中开板记录 {candidate.lifecycle.candle_context.board_break_count ?? "未评估"} 次
+            </div>
+          ) : null}
+          <div className="text-caption text-ink-3">{candidate.lifecycle.scope}</div>
+        </div>
+      </div>
+      <div className="grid gap-1 rounded-md border border-hairline px-3 py-2.5">
+        <div className="text-caption text-ink-3">成分股同步合力</div>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 text-body text-ink-2">
+          <span>
+            覆盖 {candidate.cohesion.covered_count ?? "—"}/
+            {candidate.cohesion.member_count ?? "—"} ({ratioLabel(candidate.cohesion.coverage_ratio)})
+          </span>
+          <span>上涨 {ratioLabel(candidate.cohesion.advancer_ratio)}</span>
+          <span>下跌 {ratioLabel(candidate.cohesion.decliner_ratio)}</span>
+          <span>平均相关性 {candidate.cohesion.pairwise_correlation?.toFixed(2) ?? "—"}</span>
+          <span>同步上涨日 {ratioLabel(candidate.cohesion.synchronized_up_ratio)}</span>
+          <span>共同历史 {candidate.cohesion.history_sessions} 日</span>
+        </div>
+        <div className="text-caption text-ink-3">{candidate.cohesion.note}</div>
       </div>
 
       {opinions.length ? (
@@ -143,10 +281,20 @@ export function DragonIntelligencePanel({
   data,
   loading,
   error,
+  agentStatus,
+  agentResearch,
+  agentLoading,
+  agentError,
+  onRunAgent,
 }: {
   data: DragonIntelligenceResponse | null;
   loading: boolean;
   error: string | null;
+  agentStatus: DragonAgentStatus | null;
+  agentResearch: DragonAgentResearch | null;
+  agentLoading: boolean;
+  agentError: string | null;
+  onRunAgent: () => void;
 }) {
   if (loading && !data) {
     return <div className="rounded-lg border border-hairline p-3 text-body text-ink-3">正在生成只读龙头理解结果…</div>;
@@ -195,6 +343,17 @@ export function DragonIntelligencePanel({
             {data.candidates_truncated ? "当前展示前 20 只" : "覆盖当前候选集合"}
           </div>
         </div>
+        <div className="rounded-md border border-hairline px-3 py-2.5">
+          <div className="text-caption text-ink-3">成分股合力</div>
+          <div className="text-body font-semibold text-ink">
+            {data.cohesion_summary?.boards_measured ?? 0}/
+            {data.cohesion_summary?.boards_total ?? 0} 个板块实测
+          </div>
+          <div className="text-caption text-ink-3">
+            预期代理可比 {data.expectation_proxy_summary?.candidates_with_comparable_prior_snapshot ?? 0} 只
+            · 历史快照 {data.lifecycle_summary?.history_snapshots_available ?? 0} 份
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-2 rounded-md border border-hairline px-3 py-2.5">
@@ -212,6 +371,124 @@ export function DragonIntelligencePanel({
             </Badge>
           ))}
         </div>
+      </div>
+      <div className="grid gap-2 rounded-md border border-hairline px-3 py-2.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-body font-medium text-ink">LLM Agent 研究</span>
+          <Badge tone={agentStatus?.enabled ? "positive" : "muted"}>
+            {agentStatus?.enabled ? "已启用" : "未配置/关闭"}
+          </Badge>
+          <Badge tone="outline">{agentStatus?.model ?? "OpenAI Responses"}</Badge>
+          {agentStatus?.web_search_enabled ? (
+            <Badge tone="normal">公开网页检索已开</Badge>
+          ) : null}
+        </div>
+        <div className="text-body text-ink-3">
+          {agentStatus?.detail ?? "正在读取 LLM Agent 配置…"}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            disabled={!agentStatus?.enabled || agentLoading}
+            onClick={onRunAgent}
+          >
+            {agentLoading ? "研究分析中…" : "运行 LLM 交叉研究"}
+          </button>
+          <span className="text-caption text-ink-3">仅在点击后调用；不改写评分、资格和仓位。</span>
+        </div>
+        {agentError ? (
+          <div
+            role="alert"
+            className="rounded-md border border-warning-line bg-warning-soft px-3 py-2 text-body text-ink"
+          >
+            {agentError}
+          </div>
+        ) : null}
+        {agentResearch ? (
+          <div className="grid gap-2 rounded-md border border-hairline p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge tone={stanceTone(agentResearch.analysis.stance)}>
+                {stanceLabel(agentResearch.analysis.stance)}
+              </Badge>
+              <Badge tone="muted">{confidenceLabel(agentResearch.analysis.confidence)}</Badge>
+              <span className="text-caption text-ink-3">
+                {agentResearch.model} · {new Date(agentResearch.generated_at).toLocaleString()}
+              </span>
+            </div>
+            <p className="text-body text-ink-2">{agentResearch.analysis.summary}</p>
+            {agentResearch.analysis.key_agreement.length ? (
+              <div className="grid gap-1">
+                <div className="text-caption font-medium text-ink-3">与量化证据一致</div>
+                {agentResearch.analysis.key_agreement.map((item) => (
+                  <div key={item} className="text-body text-ink-2">• {item}</div>
+                ))}
+              </div>
+            ) : null}
+            {agentResearch.analysis.key_disagreement.length ? (
+              <div className="grid gap-1">
+                <div className="text-caption font-medium text-ink-3">与量化证据分歧</div>
+                {agentResearch.analysis.key_disagreement.map((item) => (
+                  <div key={item} className="text-body text-ink-2">• {item}</div>
+                ))}
+              </div>
+            ) : null}
+            {agentResearch.analysis.evidence_for.length ? (
+              <div className="grid gap-1">
+                <div className="text-caption font-medium text-ink-3">补充支持证据</div>
+                {agentResearch.analysis.evidence_for.map((item) => (
+                  <div key={item} className="text-body text-ink-2">• {item}</div>
+                ))}
+              </div>
+            ) : null}
+            {agentResearch.analysis.evidence_against.length ? (
+              <div className="grid gap-1">
+                <div className="text-caption font-medium text-ink-3">补充风险证据</div>
+                {agentResearch.analysis.evidence_against.map((item) => (
+                  <div key={item} className="text-body text-ink-2">• {item}</div>
+                ))}
+              </div>
+            ) : null}
+            {agentResearch.analysis.unknowns.length ? (
+              <div className="grid gap-1">
+                <div className="text-caption font-medium text-ink-3">仍未验证</div>
+                {agentResearch.analysis.unknowns.map((item) => (
+                  <div key={item} className="text-body text-ink-3">• {item}</div>
+                ))}
+              </div>
+            ) : null}
+            {agentResearch.analysis.next_checks.length ? (
+              <div className="grid gap-1">
+                <div className="text-caption font-medium text-ink-3">建议验证</div>
+                {agentResearch.analysis.next_checks.map((item) => (
+                  <div key={item} className="text-body text-ink-2">→ {item}</div>
+                ))}
+              </div>
+            ) : null}
+            {agentResearch.analysis.caveats.map((item) => (
+              <div key={item} className="text-caption text-ink-3">
+                注意：{item}
+              </div>
+            ))}
+            {agentResearch.citations.length ? (
+              <div className="grid gap-1">
+                <div className="text-caption font-medium text-ink-3">公开来源</div>
+                {agentResearch.citations.map((item) => (
+                  <a
+                    key={item.url}
+                    className="text-body text-brand underline"
+                    href={item.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {item.title}
+                  </a>
+                ))}
+              </div>
+            ) : null}
+            <div className="text-caption text-ink-3">{agentResearch.note}</div>
+          </div>
+        ) : null}
       </div>
 
       <div className="grid gap-2">

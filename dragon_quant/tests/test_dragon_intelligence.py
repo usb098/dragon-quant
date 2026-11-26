@@ -173,3 +173,73 @@ def test_missing_expert_evidence_is_not_mislabelled_as_divergence():
     assert result["status"] == "insufficient_evidence"
     assert result["consensus_stance"] is None
     assert "证据缺口" in result["note"] or "证据" in result["note"]
+
+
+
+def test_enrichment_adds_measured_cohesion_and_pre_event_proxy():
+    previous = _snapshot(role="follower", trade_date="2026-11-25")
+    current = _snapshot(trade_date="2026-11-26")
+    codes = [f"60000{i}" for i in range(1, 7)]
+    stock_rows = {}
+    dates = ["2026-11-23", "2026-11-24", "2026-11-25", "2026-11-26"]
+    for index, code in enumerate(codes):
+        closes = [10.0 + index, 10.2 + index, 10.5 + index, 10.9 + index]
+        stock_rows[code] = [
+            {"date": day, "close": close}
+            for day, close in zip(dates, closes)
+        ]
+    result = analyze_dragon_intelligence(
+        current,
+        previous_snapshots=[previous],
+        market_assets={
+            "ths_block_top": {
+                "rows": [{"name": "机器人", "stock_list": [{"code": code} for code in codes]}],
+            },
+            "stock_daily": {"rows": stock_rows},
+        },
+    )
+    candidate = result["candidates"][0]
+    assert candidate["cohesion"]["status"] == "measured"
+    assert candidate["cohesion"]["advancer_ratio"] == 1.0
+    assert candidate["expectation_gap"]["status"] == "above_prior_expectation"
+    assert candidate["expectation_gap"]["basis"] == "prior_snapshot_framework_proxy"
+    assert result["cohesion_summary"]["boards_measured"] == 1
+
+
+
+def test_engine_passes_frozen_plan_and_feedback_into_expectation_analysis():
+    current = _snapshot(trade_date="2026-11-27")
+    current["feedback"] = {
+        "source_plan_date": "2026-11-26",
+        "eval_date": "2026-11-27",
+        "items": [{
+            "code": "600001",
+            "state": "confirmed",
+            "gap_pct": 8.5,
+            "auction_ratio": 1.4,
+            "unknown_reason": None,
+            "expectations_source": "prev_plan",
+        }],
+    }
+    previous = _snapshot(role="vanguard", trade_date="2026-11-26")
+    result = analyze_dragon_intelligence(
+        current,
+        previous_snapshots=[previous],
+        market_assets={
+            "prev_plan": {
+                "source_trade_date": "2026-11-26",
+                "feedback_plans": [{
+                    "code": "600001",
+                    "expected": {
+                        "gap_low": 3.0,
+                        "gap_high": 7.0,
+                        "ratio_low": 1.2,
+                        "seal_by": "10:00",
+                    },
+                }],
+            },
+        },
+    )
+    candidate = next(row for row in result["candidates"] if row["code"] == "600001")
+    assert candidate["expectation_gap"]["basis"] == "frozen_previous_plan_feedback"
+    assert candidate["expectation_gap"]["status"] == "above_prior_expectation"

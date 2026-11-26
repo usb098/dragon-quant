@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import {
   fetchPrepAccuracy,
+  fetchDragonAgentStatus,
+  runPrepDragonAgent,
   fetchPrepDragonIntelligence,
   fetchPrepCalendar,
   fetchPrepEffect,
@@ -8,6 +10,8 @@ import {
   fetchPrepWatermark,
   type AccuracyResponse,
   type DragonIntelligenceResponse,
+  type DragonAgentStatus,
+  type DragonAgentResearch,
   type PrepCalendar,
   type PrepEffect,
   type PrepSnapshotView,
@@ -54,6 +58,10 @@ export function PrepPage() {
   const [dragonIntelligence, setDragonIntelligence] = useState<DragonIntelligenceResponse | null>(null);
   const [dragonIntelligenceLoading, setDragonIntelligenceLoading] = useState(false);
   const [dragonIntelligenceError, setDragonIntelligenceError] = useState<string | null>(null);
+  const [agentStatus, setAgentStatus] = useState<DragonAgentStatus | null>(null);
+  const [agentResearch, setAgentResearch] = useState<DragonAgentResearch | null>(null);
+  const [agentLoading, setAgentLoading] = useState(false);
+  const [agentError, setAgentError] = useState<string | null>(null);
   const [accuracy, setAccuracy] = useState<AccuracyResponse | null>(null);
   const [accuracyLoading, setAccuracyLoading] = useState(true);
   const [accuracyError, setAccuracyError] = useState<string | null>(null);
@@ -87,6 +95,15 @@ export function PrepPage() {
       active = false;
     };
   }, [reloadToken]);
+
+  // LLM 配置状态只读取标志位，不返回或读取 API Key。
+  useEffect(() => {
+    let active = true;
+    fetchDragonAgentStatus()
+      .then((payload) => { if (active) setAgentStatus(payload); })
+      .catch((exc: unknown) => { if (active) setAgentError(messageOf(exc)); });
+    return () => { active = false; };
+  }, []);
 
   // 全历史准确率固定请求，不随选中日变化；失败不阻塞其他区块。
   useEffect(() => {
@@ -126,6 +143,8 @@ export function PrepPage() {
     setDragonIntelligence(null);
     setDragonIntelligenceError(null);
     setDragonIntelligenceLoading(false);
+    setAgentResearch(null);
+    setAgentError(null);
     setEffect(null);
     setEffectError(null);
     setEffectLoading(true);
@@ -172,6 +191,21 @@ export function PrepPage() {
       active = false;
     };
   }, [date, reloadToken]);
+
+  const runAgent = async () => {
+    if (!date || !agentStatus?.enabled || agentLoading) return;
+    setAgentLoading(true);
+    setAgentError(null);
+    setAgentResearch(null);
+    try {
+      const result = await runPrepDragonAgent(date);
+      setAgentResearch(result);
+    } catch (exc: unknown) {
+      setAgentError(messageOf(exc));
+    } finally {
+      setAgentLoading(false);
+    }
+  };
 
   const changeDate = (next: string) => {
     setDate(next);
@@ -267,6 +301,11 @@ export function PrepPage() {
             dragonIntelligence={dragonIntelligence}
             dragonIntelligenceLoading={dragonIntelligenceLoading}
             dragonIntelligenceError={dragonIntelligenceError}
+            agentStatus={agentStatus}
+            agentResearch={agentResearch?.trade_date === date ? agentResearch : null}
+            agentLoading={agentLoading}
+            agentError={agentError}
+            onRunAgent={runAgent}
           />
           ) : (
             <EmptyState

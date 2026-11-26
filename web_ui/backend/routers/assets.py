@@ -13,8 +13,15 @@ from typing import Literal
 from zoneinfo import ZoneInfo
 
 from dragon_quant.intelligence import analyze_dragon_intelligence
+from dragon_quant.intelligence.llm_agent import (
+    AgentDisabled,
+    AgentNotConfigured,
+    AgentRequestError,
+    agent_status,
+    run_research,
+)
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from pydantic import BaseModel
 
 from .. import params
@@ -27,6 +34,7 @@ from ..deps import (
     review_assets_enabled,
 )
 from ..errors import ApiError
+from ..http_guards import origin_allowed
 from ..presenters import auction_effect as auction_effect_view
 from ..presenters import auction_view, prep_effect, prep_view
 from ..presenters.calendar_defaults import resolve_default_date
@@ -643,6 +651,53 @@ def prep_snapshot(trade_date: str, source: str = "v2", slim: bool = True,
     )
 
 
+def _build_dragon_intelligence_payload(
+    day: str, source: str, assets, *, expert_ids: list[str] | None = None
+) -> tuple[dict, dict]:
+    current = assets.get_prep_snapshot(day, source)
+    if current is None:
+        raise ApiError(404, "not_found", f"{day} 无 {source} 复盘快照")
+
+    history: list[dict] = []
+    cursor = day
+    for _ in range(10):
+        try:
+            previous, meta = assets.get_previous_prep_snapshot(cursor, source)
+        except Exception:
+            break
+        if not isinstance(previous, dict):
+            break
+        previous_date = (
+            meta.get("trade_date") if isinstance(meta, dict) else None
+        ) or previous.get("trade_date")
+        if not isinstance(previous_date, str) or previous_date >= cursor:
+            break
+        history.append(previous)
+        cursor = previous_date
+
+    market_assets: dict = {}
+    for asset_type in ("ths_block_top", "stock_daily", "prev_plan"):
+        try:
+            market_assets[asset_type] = assets.get_prep_asset(day, asset_type)
+        except Exception:
+            market_assets[asset_type] = None
+
+    result = analyze_dragon_intelligence(
+        current,
+        previous_snapshot=history[0] if history else None,
+        previous_snapshots=history,
+        market_assets=market_assets,
+        expert_ids=expert_ids,
+    )
+    return current, result
+
+
+@router.get("/api/intelligence/agent/status", response_model=None)
+def dragon_intelligence_agent_status() -> dict:
+    """只报告 Agent 配置状态，不返回密钥。"""
+    return agent_status()
+
+
 @router.get("/api/prep/{trade_date}/dragon-intelligence", response_model=None)
 def prep_dragon_intelligence(
     trade_date: str,
@@ -653,26 +708,42 @@ def prep_dragon_intelligence(
     """基于已保存 prep 快照的只读龙头理解；不联网、不写库、不影响交易决策。"""
     day = _normalize_date_or_400(trade_date)
     src = params.parse_source(source)
-    current = assets.get_prep_snapshot(day, src)
-    if current is None:
-        raise ApiError(404, "not_found", f"{day} 无 {src} 复盘快照")
-    try:
-        previous, _previous_meta = assets.get_previous_prep_snapshot(day, src)
-    except Exception:
-        previous = None
     expert_ids = (
         [item.strip() for item in experts.split(",") if item.strip()]
         if isinstance(experts, str) and experts.strip()
         else None
     )
     try:
-        return analyze_dragon_intelligence(
-            current,
-            previous_snapshot=previous,
-            expert_ids=expert_ids,
+        _current, result = _build_dragon_intelligence_payload(
+            day, src, assets, expert_ids=expert_ids
         )
     except ValueError as exc:
         raise ApiError(400, "invalid_request", str(exc)) from exc
+    return result
+
+
+@router.post("/api/prep/{trade_date}/dragon-intelligence/agent", response_model=None)
+def prep_dragon_intelligence_agent(
+    trade_date: str,
+    request: Request,
+    source: str = "v2",
+    assets=Depends(assets_repository),
+) -> dict:
+    """显式执行一次服务端 LLM 研究；不写库、不改变交易规则。"""
+    origin = request.headers.get("origin")
+    if origin is not None and not origin_allowed(origin):
+        raise ApiError(403, "invalid_origin", "只允许当前 Dashboard 页面触发 LLM 研究")
+    day = _normalize_date_or_400(trade_date)
+    src = params.parse_source(source)
+    _current, result = _build_dragon_intelligence_payload(day, src, assets)
+    try:
+        return run_research(result)
+    except AgentNotConfigured as exc:
+        raise ApiError(503, "agent_not_configured", str(exc)) from exc
+    except AgentDisabled as exc:
+        raise ApiError(503, "agent_disabled", str(exc)) from exc
+    except AgentRequestError as exc:
+        raise ApiError(502, "agent_request_failed", str(exc)) from exc
 
 
 @router.get("/api/prep/{trade_date}/review-context", response_model=ReviewContext)

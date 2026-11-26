@@ -55,3 +55,18 @@ flowchart TD
 3. 建立首阴、反包、被关次数与新老龙头交接事件链。
 4. 接入可配置的外部研究 Agent，并对引用、时效、冲突和失败做审计。
 5. 通过历史 walk-forward 与消融实验验证后，才允许有限影响候选排序。
+
+## 新增能力（第二阶段）
+
+- 市场合力：`intelligence/cohesion.py` 从板块成分股和本地日 K 计算覆盖率、上涨/下跌占比、平均/中位收益、两两收益相关性及同步上涨/下跌日比例；覆盖或共同历史不足时标记 partial_proxy/unknown。
+- 预期差代理：`intelligence/evidence.py` 比较当前与上一份历史复盘的角色、主线状态/排名和高度，输出 above/below/met/mixed/unknown。该值是前序快照框架代理，不是真实市场一致预期。
+- 生命周期：最多回看 10 份快照，记录新老龙交接、近期高度新高、退位、角色变化和高度回落；缺失交易日不补齐，连续数是观察快照数。
+- LLM：`intelligence/llm_agent.py` 采用 OpenAI Responses API + Structured Outputs；web_search 默认关闭，点击后单次执行、只传紧凑研究摘要，不包含用户原始私有文档。
+- 资料蒸馏：`docs/agent/distillation.md` 定义人物隔离、来源定位、原子理念、交割单事件化、反例与 walk-forward 验证；模板在 `docs/templates/`。
+
+
+## 第三阶段：冻结预期与生命周期细化
+
+- 预期差不再只依赖角色/主线变化代理：优先使用 T-1 冻结计划的 `feedback_plans[].expected`，与 T+1 `feedback.items` 实际缺口/竞价额比/状态比较；只有冻结反馈不存在时才回退上一份快照框架代理。T+1 行情缺失时保留 unknown，不覆盖为 proxy。
+- 生命周期最多追溯 10 份快照，快照缺失会中断 observed streak；日 K 当前/前一根支持近端首次收阴、收阴后反弹和阳线实体反包检测；反馈的 `broken_count` 补充盘中开板事件。
+- 公网 Dashboard 复用已有 Basic Auth / TrustedHost 中间件。LLM POST 增加 Origin 校验；API Key 只保留在服务端变量中，原始心法/交割单不会送入 LLM 输入。

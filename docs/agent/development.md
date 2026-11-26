@@ -160,3 +160,7 @@
 ## 龙头理解工作台前端增量
 
 /prep 核心结果新增只读 Dragon Intelligence 面板，消费 /api/prep/{date}/dragon-intelligence；展示统一候选、专家观点、共识/分歧和证据缺口。前端数据类型位于 web_ui/frontend/src/api/assets.ts，组件位于 pages/prep/DragonIntelligencePanel.tsx。修改前端后必须执行 npm --prefix web_ui/frontend run build，将 web_ui/dist 与源码同批提交；仅修改源码而未构建 dist 时，dashboard 仍会提供旧界面。
+
+## 临时在线预览 Docker 构建
+
+`preview/Dockerfile` 使用 Node 构建 React/Vite 前端，再将 `web_ui/dist` 复制进 Python 镜像；正式 Dashboard 仍由 FastAPI 静态托管，运行期不需要 Node。Dockerfile 构建会将 lockfile 中原先的 `bnpm.byted.org` registry 地址改为 npm 官方 registry 后执行 `npm ci`。部署到 Railway 时保留 `preview/Dockerfile` 路径、现有 `/data` 持久卷和 Basic Auth 变量；不要把 API Key 写进 Dockerfile、前端变量或 Git。

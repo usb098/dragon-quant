@@ -9,6 +9,8 @@ import math
 from typing import Any, Mapping
 
 from .registry import list_experts, resolve_experts
+from .cohesion import build_market_cohesion
+from .evidence import build_leader_lifecycle, build_pre_event_expectation
 
 _ROLE_ORDER = {"leader": 0, "vanguard": 1, "mainstay": 2, "capacity": 3, "follower": 4}
 _IDENTITY_LABELS = {
@@ -19,18 +21,6 @@ _IDENTITY_LABELS = {
     "capacity": "容量核心",
     "follower": "跟风",
     "unconfirmed": "待确认",
-}
-_STAGE_LABELS = {
-    "first_observation": "首次观察",
-    "handoff_candidate": "新老龙交接候选",
-    "continuing": "延续",
-    "strengthening": "强化",
-    "climax": "高潮观察",
-    "weakening": "走弱观察",
-    "sector_leader": "主线核心",
-    "emerging": "潜在新核心",
-    "risk_watch": "风险观察",
-    "watch": "持续观察",
 }
 
 
@@ -53,19 +43,20 @@ def _number(value: Any) -> float | None:
     return number if math.isfinite(number) else None
 
 
-def _old_total_leader(previous_snapshot: Any) -> str | None:
-    previous_review = _dict(_dict(previous_snapshot).get("review"))
-    previous_leaders = _dict(previous_review.get("leaders"))
-    total = _dict(previous_leaders.get("market_total_leader"))
-    return _text(total.get("code"))
-
-
 def _build_candidate_rows(
     review: Mapping[str, Any],
     leaders: Mapping[str, Any],
     mainlines: list[dict],
     previous_snapshot: Any,
     phase: str,
+    *,
+    previous_snapshots: list[Any] | None = None,
+    cohesion_by_board: Mapping[str, Any] | None = None,
+    current_total_leader_code: str | None = None,
+    trade_date: str = "",
+    current_feedback: Any = None,
+    frozen_prev_plan: Any = None,
+    daily_bars_by_code: Mapping[str, Any] | None = None,
 ) -> list[dict]:
     rows: dict[str, dict] = {}
 
@@ -98,7 +89,10 @@ def _build_candidate_rows(
         for item in mainlines
         if _text(item.get("board_name"))
     }
-    previous_code = _old_total_leader(previous_snapshot)
+    history = list(previous_snapshots or [])
+    if not history and previous_snapshot is not None:
+        history = [previous_snapshot]
+    previous_snapshot = history[0] if history else previous_snapshot
     total_status = _text(total.get("status")) or "unavailable"
     total_code = _text(total.get("code"))
     coverage_complete = _dict(leaders.get("coverage")).get("complete") is True
@@ -143,42 +137,37 @@ def _build_candidate_rows(
         elif role is None:
             confidence = "unknown"
 
-        if is_total:
-            if previous_code == code:
-                if phase == "climax":
-                    stage = "climax"
-                elif phase == "recession" or mainline_state == "weakening":
-                    stage = "weakening"
-                elif phase in ("startup", "fermentation") or mainline_state == "strengthening":
-                    stage = "strengthening"
-                else:
-                    stage = "continuing"
-            elif previous_code:
-                stage = "handoff_candidate"
-            else:
-                stage = "first_observation"
-        elif role == "leader":
-            stage = "sector_leader"
-        elif role == "vanguard":
-            stage = "emerging"
-        elif phase in ("ice", "recession"):
-            stage = "risk_watch"
-        else:
-            stage = "watch"
-
         cohesion_count = _number(board.get("limit_up_num"))
         if cohesion_count is None:
             cohesion_count = _number(raw.get("board_limit_up_num"))
         continuity = _number(board.get("continuous_plate_num"))
         concentration = _number(board.get("concentration"))
         cohesion_known = any(value is not None for value in (cohesion_count, continuity, concentration))
-        cohesion = {
+        static_cohesion = {
             "status": "partial_proxy" if cohesion_known else "unknown",
             "limit_up_num": cohesion_count,
             "continuous_plate_num": continuity,
             "concentration": concentration,
-            "note": "板块静态指标只能作为扩散代理，不能替代成分股联动时间序列。",
+            "member_count": None,
+            "covered_count": None,
+            "coverage_ratio": None,
+            "advancer_ratio": None,
+            "decliner_ratio": None,
+            "mean_return_pct": None,
+            "median_return_pct": None,
+            "pairwise_correlation": None,
+            "correlation_pairs": 0,
+            "synchronized_up_ratio": None,
+            "synchronized_down_ratio": None,
+            "history_sessions": 0,
+            "data_as_of": None,
+            "note": "暂无足够成分股日 K 时，仅展示板块涨停家数等静态代理。",
         }
+        measured_cohesion = (cohesion_by_board or {}).get(mainline_name)
+        cohesion = (
+            {**static_cohesion, **dict(measured_cohesion)}
+            if isinstance(measured_cohesion, Mapping) else static_cohesion
+        )
         structure = {
             "height": int(height) if height is not None and height.is_integer() else height,
             "mainline_name": mainline_name,
@@ -197,7 +186,7 @@ def _build_candidate_rows(
             "main_net_amount": _number(raw.get("main_net_amount")),
             "is_one_word": raw.get("is_one_word") is True,
         }
-        output.append({
+        candidate_view = {
             "code": code,
             "name": _text(raw.get("name")),
             "identity": identity,
@@ -209,18 +198,35 @@ def _build_candidate_rows(
             "sources": list(raw["sources"]),
             "structure": structure,
             "cohesion": cohesion,
-            "expectation_gap": {
-                "status": "unknown",
-                "reason": "no_independent_market_consensus_baseline",
-            },
-            "lifecycle": {
-                "stage": stage,
-                "label": _STAGE_LABELS[stage],
-                "previous_total_leader_code": previous_code,
-                "scope": "基于当前快照与最近一份前序快照的粗粒度观察，不等同于完整生命周期识别。",
-            },
             "expert_opinions": [],
-        })
+        }
+        prior_context = {
+            **candidate_view,
+            "trade_date": trade_date,
+            "height": height,
+            "mainline": {
+                "board_name": mainline_name,
+                "rank": rank,
+                "state": mainline_state,
+            },
+            "mainline_rank": rank,
+            "mainline_state": mainline_state,
+        }
+        candidate_view["expectation_gap"] = build_pre_event_expectation(
+            prior_context,
+            history,
+            feedback=current_feedback,
+            prev_plan=frozen_prev_plan,
+        )
+        candidate_view["lifecycle"] = build_leader_lifecycle(
+            prior_context,
+            current_total_leader_code=current_total_leader_code if is_total else None,
+            previous_snapshots=history,
+            phase=phase,
+            daily_bars=(daily_bars_by_code or {}).get(code),
+            feedback=current_feedback,
+        )
+        output.append(candidate_view)
 
     output.sort(key=lambda item: (
         0 if item["is_total_leader"] else 1,
@@ -275,11 +281,11 @@ def _collaboration_for_opinions(
         status = "single_expert"
         consensus = None
         note = "当前只有一位独立专家启用；展示其单独观点，不称为多专家共识。"
-    elif len(stances) < len(active_experts):
+    elif not stances:
         status = "insufficient_evidence"
         consensus = None
-        note = "部分专家缺少足够证据；保留各自观点与未知项，不把证据缺口误报为意见分歧。"
-    elif len(unique) == 1:
+        note = "专家均缺少足够证据，保留未知，不强行合成结论。"
+    elif len(unique) == 1 and len(stances) == len(active_experts):
         status = "aligned"
         consensus = unique[0]
         note = "专家方向一致；仍保留各自证据链，不做分数平均。"
@@ -306,9 +312,12 @@ def analyze_dragon_intelligence(
     snapshot: Any,
     *,
     previous_snapshot: Any = None,
+    previous_snapshots: list[Any] | None = None,
+    market_assets: Mapping[str, Any] | None = None,
     expert_ids: list[str] | None = None,
 ) -> dict:
     """对一个 prep 快照生成只读龙头理解结果。"""
+
 
     data = _dict(snapshot)
     review = _dict(data.get("review"))
@@ -339,8 +348,30 @@ def analyze_dragon_intelligence(
     phase = _text(emotion.get("phase")) or "unknown"
     coverage = _dict(leaders.get("coverage"))
     coverage_complete = coverage.get("complete") is True
+    history = list(previous_snapshots or [])
+    if not history and previous_snapshot is not None:
+        history = [previous_snapshot]
+    previous_snapshot = history[0] if history else previous_snapshot
+    sources = dict(market_assets or {})
+    cohesion_by_board = build_market_cohesion(
+        sources.get("ths_block_top"),
+        sources.get("stock_daily"),
+        trade_date=_text(data.get("trade_date")) or "",
+    )
+    current_total = _text(_dict(leaders.get("market_total_leader")).get("code"))
     candidate_rows = _build_candidate_rows(
-        review, leaders, mainlines, previous_snapshot, phase
+        review, leaders, mainlines, previous_snapshot, phase,
+        previous_snapshots=history,
+        cohesion_by_board=cohesion_by_board,
+        current_total_leader_code=current_total,
+        trade_date=_text(data.get("trade_date")) or "",
+        current_feedback=data.get("feedback"),
+        frozen_prev_plan=sources.get("prev_plan"),
+        daily_bars_by_code=(
+            _dict(sources.get("stock_daily")).get("rows")
+            if isinstance(_dict(sources.get("stock_daily")).get("rows"), Mapping)
+            else {}
+        ),
     )
 
     context = {
@@ -362,11 +393,32 @@ def analyze_dragon_intelligence(
         )
 
     collaboration = _collaboration_status(candidate_rows, active_meta)
+    measured_boards = sum(
+        1 for item in cohesion_by_board.values()
+        if isinstance(item, Mapping) and item.get("status") == "measured"
+    )
+    partial_boards = sum(
+        1 for item in cohesion_by_board.values()
+        if isinstance(item, Mapping) and item.get("status") == "partial_proxy"
+    )
+    expectation_measured = sum(
+        1 for item in candidate_rows
+        if item.get("expectation_gap", {}).get("status") != "unknown"
+    )
+    frozen_feedback_count = sum(
+        1 for item in candidate_rows
+        if str(item.get("expectation_gap", {}).get("basis", "")).startswith("frozen_")
+    )
+    prior_proxy_count = sum(
+        1 for item in candidate_rows
+        if item.get("expectation_gap", {}).get("basis") == "prior_snapshot_framework_proxy"
+        and item.get("expectation_gap", {}).get("status") != "unknown"
+    )
     limitations = [
-        "本引擎只读取已保存的 prep 快照，不调用实时行情或外部新闻。",
-        "预期差暂不评分：缺少独立的一致预期基线，不能把 T+1 结果倒灌成事前预期。",
-        "市场合力暂以主线涨停家数、持续天数和集中度作静态代理，尚未计算板块成分股的同步联动。",
-        "龙头生命周期仅使用当前快照和最近前序快照，首阴、反包、被关次数等事件链尚未完整接入。",
+        "本引擎只读取已保存的 prep 与日 K 资产；不主动补采行情。",
+        "预期差优先使用 T-1 冻结预期与 T+1 feedback 对照；仅在反馈/冻结基线缺失时回退前序框架代理，均不等同于全市场一致预期。",
+        f"市场合力已计算 {measured_boards} 个覆盖达标板块；{partial_boards} 个板块仅有部分/静态代理，其余明确保留未知。",
+        "生命周期最多追溯 10 份已保存快照；快照缺失的交易日不补齐，不能把观察连续数误作完整连板周期。",
         "陈小群模块目前是公开理念的确定性规则适配器，不是联网 LLM Agent，也不代表本人观点。",
     ]
     return {
@@ -392,6 +444,23 @@ def analyze_dragon_intelligence(
         "candidate_pool_count": len(candidate_rows),
         "candidates": candidate_rows[:20],
         "candidates_truncated": len(candidate_rows) > 20,
+        "cohesion_summary": {
+            "boards_total": len(cohesion_by_board),
+            "boards_measured": measured_boards,
+            "boards_partial": partial_boards,
+        },
+        "expectation_proxy_summary": {
+            "candidates_with_comparable_prior_snapshot": expectation_measured,
+            "candidates_with_frozen_feedback": frozen_feedback_count,
+            "candidates_using_prior_snapshot_proxy": prior_proxy_count,
+            "candidates_total": len(candidate_rows),
+            "basis": "frozen_previous_plan_feedback_then_prior_snapshot_framework_proxy",
+        },
+        "lifecycle_summary": {
+            "history_snapshots_available": len(history),
+            "max_history_snapshots": 10,
+            "scope": "saved_snapshots_only",
+        },
         "experts": list_experts(),
         "active_expert_ids": [item["meta"]["id"] for item in selected_experts],
         "collaboration": collaboration,

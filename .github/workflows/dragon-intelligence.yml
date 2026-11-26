@@ -1,0 +1,47 @@
+name: Dragon Intelligence CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, feat/dragon-intelligence-engine]
+
+jobs:
+  tests-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]" pytest
+      - name: Compile new Python modules
+        run: python -m compileall -q dragon_quant/intelligence web_ui/backend
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web_ui/frontend/package-lock.json
+      - name: Install frontend dependencies
+        run: |
+          sed -i 's#https://bnpm.byted.org/#https://registry.npmjs.org/#g' web_ui/frontend/package-lock.json
+          npm --prefix web_ui/frontend ci --no-audit --no-fund --registry=https://registry.npmjs.org
+      - name: Build frontend
+        run: npm --prefix web_ui/frontend run build
+      - name: Run Dragon Intelligence tests
+        run: |
+          pytest -q \
+            dragon_quant/tests/test_dragon_intelligence.py \
+            dragon_quant/tests/test_intelligence_cohesion.py \
+            dragon_quant/tests/test_intelligence_evidence.py \
+            dragon_quant/tests/test_intelligence_llm_agent.py \
+            dragon_quant/tests/test_dashboard_auth.py \
+            dragon_quant/tests/test_dashboard_dragon_intelligence.py \
+            dragon_quant/tests/test_web_frontend_dragon_intelligence.py

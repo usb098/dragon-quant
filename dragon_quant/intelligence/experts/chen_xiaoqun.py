@@ -42,6 +42,9 @@ def analyze_candidate(context: Mapping[str, Any], candidate: Mapping[str, Any]) 
     role = _text(candidate.get("role")) or "unknown"
     is_total_leader = candidate.get("is_total_leader") is True
     coverage_complete = context.get("coverage_complete") is True
+    structure = candidate.get("structure") if isinstance(candidate.get("structure"), Mapping) else {}
+    cohesion = candidate.get("cohesion") if isinstance(candidate.get("cohesion"), Mapping) else {}
+    expectation = candidate.get("expectation_gap") if isinstance(candidate.get("expectation_gap"), Mapping) else {}
 
     supporting: list[str] = []
     against: list[str] = []
@@ -54,18 +57,33 @@ def analyze_candidate(context: Mapping[str, Any], candidate: Mapping[str, Any]) 
         supporting.append("处于已观测全市场最高空间板，但总龙头条件尚未全部满足")
     if role == "leader":
         supporting.append("在已识别主线内被分配为龙头角色")
-    if candidate.get("mainline_state") == "strengthening":
+    if structure.get("mainline_state") == "strengthening":
         supporting.append("所属主线较上一快照强化")
-    if candidate.get("mainline_state") == "weakening":
+    if structure.get("mainline_state") == "weakening":
         against.append("所属主线较上一快照走弱")
         risk_flags.append("mainline_weakening")
 
     if not coverage_complete:
         unknowns.append("全市场涨停池覆盖不完整，无法确认全市场最高板")
-    if candidate.get("expectation_gap_status") != "measured":
-        unknowns.append("缺少独立的市场一致预期基线，预期差暂不可判")
-    if candidate.get("cohesion_status") != "measured":
-        unknowns.append("缺少板块成分股联动时间序列，市场合力只能观察静态代理")
+    expectation_status = _text(expectation.get("status")) or "unknown"
+    if expectation_status == "above_prior_expectation":
+        supporting.append("相对上一份复盘快照的角色/主线框架代理出现正向变化")
+    elif expectation_status == "below_prior_expectation":
+        against.append("相对上一份复盘快照的角色/主线框架代理出现负向变化")
+        risk_flags.append("below_prior_snapshot_proxy")
+    elif expectation_status == "mixed":
+        unknowns.append("前序框架对比同时出现正反证据，不能压成单一预期差方向")
+    else:
+        unknowns.append("尚无可比较的前序框架代理；不能把它表述为真实市场一致预期")
+
+    if cohesion.get("status") == "measured":
+        supporting.append(
+            "成分股联动指标达到覆盖门槛："
+            f"上涨占比 {cohesion.get('advancer_ratio')}, "
+            f"收益相关性 {cohesion.get('pairwise_correlation')}"
+        )
+    else:
+        unknowns.append("成分股合力覆盖/共同历史不足；静态涨停数不能替代实测联动")
     unknowns.append("未接入外部题材/公告研究 Agent，本次不评价题材催化真实性")
 
     if phase in ("ice", "recession"):

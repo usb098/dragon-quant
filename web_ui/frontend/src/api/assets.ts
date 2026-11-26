@@ -1,4 +1,4 @@
-import { getJson, qs } from "./client";
+import { getJson, postJson, qs } from "./client";
 
 // ─── prep ──────────────────────────────────────────────────────────────────
 
@@ -177,13 +177,59 @@ export interface DragonIntelligenceCandidate {
     limit_up_num: number | null;
     continuous_plate_num: number | null;
     concentration: number | null;
+    member_count: number | null;
+    covered_count: number | null;
+    coverage_ratio: number | null;
+    advancer_ratio: number | null;
+    decliner_ratio: number | null;
+    mean_return_pct: number | null;
+    median_return_pct: number | null;
+    pairwise_correlation: number | null;
+    correlation_pairs: number;
+    synchronized_up_ratio: number | null;
+    synchronized_down_ratio: number | null;
+    history_sessions: number;
+    data_as_of: string | null;
     note: string;
   };
-  expectation_gap: { status: string; reason: string };
+  expectation_gap: {
+    status: "above_prior_expectation" | "below_prior_expectation" | "met_prior_expectation" | "mixed" | "unknown";
+    basis: string;
+    previous_trade_date: string | null;
+    evaluation_date?: string | null;
+    reason: string;
+    feedback_state?: string | null;
+    expectations_source?: string | null;
+    actual_gap_pct?: number | null;
+    actual_auction_ratio?: number | null;
+    expected_gap_low?: number | null;
+    expected_gap_high?: number | null;
+    expected_ratio_low?: number | null;
+    positive_evidence: string[];
+    negative_evidence: string[];
+    note: string;
+  };
   lifecycle: {
     stage: string;
     label: string;
     previous_total_leader_code: string | null;
+    total_leader_observed_streak: number;
+    observation_count: number;
+    candidate_observation_count?: number;
+    height_history: Array<{ trade_date: string | null; height: number }>;
+    observed_height_peak: number | null;
+    height_delta_vs_previous: number | null;
+    candle_context?: {
+      status: string;
+      current_date: string | null;
+      previous_date: string | null;
+      current_down_candle: boolean | null;
+      previous_down_candle: boolean | null;
+      bullish_engulfing_after_negative: boolean | null;
+      board_break_count: number | null;
+      note: string;
+    };
+    events: string[];
     scope: string;
   };
   expert_opinions: DragonIntelligenceOpinion[];
@@ -222,6 +268,23 @@ export interface DragonIntelligenceResponse {
   candidate_pool_count?: number;
   candidates: DragonIntelligenceCandidate[];
   candidates_truncated?: boolean;
+  cohesion_summary?: {
+    boards_total: number;
+    boards_measured: number;
+    boards_partial: number;
+  };
+  expectation_proxy_summary?: {
+    candidates_with_comparable_prior_snapshot: number;
+    candidates_with_frozen_feedback?: number;
+    candidates_using_prior_snapshot_proxy?: number;
+    candidates_total: number;
+    basis: string;
+  };
+  lifecycle_summary?: {
+    history_snapshots_available: number;
+    max_history_snapshots: number;
+    scope: string;
+  };
   experts: Array<{
     id: string;
     name: string;
@@ -744,6 +807,50 @@ export function fetchPrepDragonIntelligence(tradeDate: string, experts?: string[
   );
 }
 
+export interface DragonAgentStatus {
+  provider: string;
+  enabled: boolean;
+  configured: boolean;
+  web_search_enabled: boolean;
+  model: string;
+  status: string;
+  detail: string;
+}
+
+export interface DragonAgentAnalysis {
+  stance: "supportive" | "neutral" | "cautious" | "insufficient_evidence";
+  confidence: "high" | "medium" | "low";
+  summary: string;
+  key_agreement: string[];
+  key_disagreement: string[];
+  evidence_for: string[];
+  evidence_against: string[];
+  unknowns: string[];
+  next_checks: string[];
+  caveats: string[];
+}
+
+export interface DragonAgentResearch {
+  provider: string;
+  model: string;
+  web_search_enabled: boolean;
+  trade_date: string | null;
+  generated_at: string;
+  analysis: DragonAgentAnalysis;
+  citations: Array<{ title: string; url: string }>;
+  read_only: boolean;
+  decision_impact: boolean;
+  sent_private_documents: boolean;
+  note: string;
+}
+
+export function fetchDragonAgentStatus() {
+  return getJson<DragonAgentStatus>("/api/intelligence/agent/status");
+}
+
+export function runPrepDragonAgent(tradeDate: string) {
+  return postJson<DragonAgentResearch>("/api/prep/" + encodeURIComponent(tradeDate) + "/dragon-intelligence/agent?source=v2", {});
+}
 export function fetchReviewContext(tradeDate: string) {
   return getJson<ReviewContext>(
     `/api/prep/${encodeURIComponent(tradeDate)}/review-context`

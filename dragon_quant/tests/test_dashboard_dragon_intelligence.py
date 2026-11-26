@@ -52,3 +52,16 @@ def test_dragon_intelligence_endpoint_is_read_only_and_returns_expert_opinions()
     assert result["active_expert_ids"] == ["chen_xiaoqun"]
     assert result["collaboration"]["status"] == "single_expert"
     assert result["candidates"][0]["expert_opinions"][0]["expert_id"] == "chen_xiaoqun"
+
+
+
+def test_agent_status_does_not_expose_api_key(monkeypatch):
+    from web_ui.backend.routers.assets import dragon_intelligence_agent_status
+
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("DQ_INTELLIGENCE_LLM_ENABLED", "1")
+    payload = dragon_intelligence_agent_status()
+    assert payload["configured"] is False
+    assert payload["enabled"] is False
+    assert payload["status"] == "missing_api_key"
+    assert "OPENAI_API_KEY" not in payload

@@ -6,7 +6,7 @@
  * `position_pct > 0` 的标的（见 `buildRecommendedCandidates`），不从旧
  * `candidates[]` 兼容投影取信号；空值一律「数据不足」，不猜方向。
  */
-import type { DragonIntelligenceResponse, PrepSnapshotView, PrepWatermark } from "../../api/assets";
+import type { DragonAgentResearch, DragonAgentStatus, DragonIntelligenceResponse, PrepSnapshotView, PrepWatermark } from "../../api/assets";
 import { Badge, type BadgeTone } from "../../components/Badge";
 import { type Column } from "../../components/DataTable";
 import { EmptyState } from "../../components/EmptyState";
@@ -85,12 +85,22 @@ export function PrepCoreResult({
   dragonIntelligence,
   dragonIntelligenceLoading,
   dragonIntelligenceError,
+  agentStatus,
+  agentResearch,
+  agentLoading,
+  agentError,
+  onRunAgent,
 }: {
   snapshot: PrepSnapshotView | null;
   watermark: PrepWatermark | null;
   dragonIntelligence: DragonIntelligenceResponse | null;
   dragonIntelligenceLoading: boolean;
   dragonIntelligenceError: string | null;
+  agentStatus: DragonAgentStatus | null;
+  agentResearch: DragonAgentResearch | null;
+  agentLoading: boolean;
+  agentError: string | null;
+  onRunAgent: () => void;
 }) {
   const market = snapshot ? buildMarketView(snapshot) : null;
   const leaderAnalysis = snapshot ? buildLeaderAnalysisView(snapshot) : null;
@@ -130,6 +140,11 @@ export function PrepCoreResult({
           data={dragonIntelligence}
           loading={dragonIntelligenceLoading}
           error={dragonIntelligenceError}
+          agentStatus={agentStatus}
+          agentResearch={agentResearch}
+          agentLoading={agentLoading}
+          agentError={agentError}
+          onRunAgent={onRunAgent}
         />
       </div>
 

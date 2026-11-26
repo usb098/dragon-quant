@@ -55,3 +55,21 @@
 - 蒸馏产物应能回溯原始材料；事实、本人公开表达、二手整理、研究者推断要分开标记。
 - 专家之间只交换规范化结论与证据引用，不互相污染原始知识库。
 - 对交割单做统计时必须记录样本窗口、资金规模、成交可得性、滑点/费用与幸存者偏差；不能从少数案例反推通用规则。
+
+## LLM Research Agent
+
+- 服务端模块：`dragon_quant/intelligence/llm_agent.py`；调用 OpenAI Responses API，使用 JSON Schema Structured Outputs。
+- 默认关闭；只有设置 `OPENAI_API_KEY` 且 `DQ_INTELLIGENCE_LLM_ENABLED=1` 才能运行。浏览器只请求本项目后端，绝不接触 API Key。
+- 可选公开网页检索由 `DQ_INTELLIGENCE_WEB_SEARCH=1` 单独启用；默认关闭。用户点击按钮后才发起一次研究请求。
+- Agent 输入是量化结果的紧凑结构化摘要，不包含原始交割单、心法原件或私有文档；没有持久化 LLM 输出的数据库写操作。
+- Web Search 引用从 Responses `url_citation` annotations 提取；无引用时不展示虚构链接。
+- LLM 输出只作研究交叉检查，固定 read_only=true、decision_impact=false；不得直接改评分、资格、仓位或实盘。
+- 资料蒸馏完整流程见 `docs/agent/distillation.md`；模板位于 `docs/templates/`。
+
+
+## 第二阶段能力
+
+- **市场合力**：使用 `intelligence/cohesion.py` 对板块成分股近端日 K 计算覆盖率、涨跌占比、收益相关性和同步方向日；覆盖与共同历史达标才标记 measured。
+- **事前预期差**：优先比较 T-1 `prev_plan.feedback_plans[].expected` 冻结的 gap_low/gap_high/ratio_low 与 T 日 `feedback.items` 里的实际竞价缺口、竞价额比和反馈状态。来源标记为 frozen_previous_plan_feedback 或 frozen_config_expectation；缺失时退回 prior_snapshot_framework_proxy / unknown。它不是全市场一致预期。
+- **生命周期**：最多回溯 10 份快照，并使用当前 `stock_daily` 与反馈 evidence 补充近端首次收阴、收阴后转强、阳线实体反包与盘中开板事件。日 K 或反馈不足时未评估；观察连续数不是完整交易日连续数。
+- **公网安全**：`DQ_PUBLIC_DEPLOYMENT=1` 时强制 Basic Auth（密码至少 32 字符）与 `DQ_ALLOWED_HOSTS`。`/health` 仅供部署健康探针绕过认证与 Host 白名单；其它路由仍需认证。
