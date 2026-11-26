@@ -247,6 +247,7 @@ def _collaboration_for_opinions(
             "consensus_stance": None,
             "note": "当前没有候选的专家观点；只展示客观量化证据，不形成理念判断。",
         }
+
     if len(active_experts) > 1:
         profiles: set[tuple[tuple[str, ...], str]] = set()
         for expert in active_experts:
@@ -273,6 +274,7 @@ def _collaboration_for_opinions(
         if item.get("stance") not in (None, "insufficient_evidence")
     ]
     unique = sorted(set(stances))
+
     if not active_experts:
         status = "insufficient_evidence"
         consensus = None
@@ -281,11 +283,11 @@ def _collaboration_for_opinions(
         status = "single_expert"
         consensus = None
         note = "当前只有一位独立专家启用；展示其单独观点，不称为多专家共识。"
-    elif not stances:
+    elif len(stances) < len(active_experts):
         status = "insufficient_evidence"
         consensus = None
-        note = "专家均缺少足够证据，保留未知，不强行合成结论。"
-    elif len(unique) == 1 and len(stances) == len(active_experts):
+        note = "至少一位专家缺少有效判断；保留各自观点与未知项，不把证据缺口误报为分歧。"
+    elif len(unique) == 1:
         status = "aligned"
         consensus = unique[0]
         note = "专家方向一致；仍保留各自证据链，不做分数平均。"

@@ -257,6 +257,16 @@ function CandidateCard({ candidate }: { candidate: DragonIntelligenceCandidate }
                   ))}
                 </div>
               ) : null}
+              {opinion.risk_flags.length ? (
+                <div className="grid gap-1">
+                  <div className="text-caption font-medium text-ink-3">风险标签</div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {opinion.risk_flags.map((flag) => (
+                      <Badge key={flag} tone="warning">{flag}</Badge>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
             </div>
           ))}
         </div>
