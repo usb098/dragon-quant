@@ -110,3 +110,15 @@ def test_unknown_market_phase_is_insufficient_data():
     result = build_decision_framework(context, candidate)
     assert result["status"] == "insufficient_data"
     assert result["preferred_mode"] == "none"
+
+
+def test_registered_chen_xiaoqun_expert_exposes_conditional_mode_assessment():
+    from dragon_quant.intelligence.experts.chen_xiaoqun import analyze_candidate
+
+    candidate, context = _candidate()
+    opinion = analyze_candidate(context, candidate)
+    framework = opinion["decision_framework"]
+    assert framework["preferred_mode"] == "breakout_follow"
+    assert framework["can_execute"] is False
+    assert framework["read_only"] is True
+    assert framework["decision_impact"] is False
