@@ -240,3 +240,9 @@ def workspace_module():
 def workspace_writes_enabled(settings) -> bool:
     """Web 是否允许变更策略选择（远程/反代部署应显式关闭）。"""
     return bool(getattr(settings, "workspace_writes_enabled", True))
+
+
+def live_quote_providers():
+    """Create market quote providers lazily for explicit intraday refresh requests."""
+    from dragon_quant.infra.provider.main import create_providers
+    return create_providers()

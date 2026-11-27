@@ -928,3 +928,41 @@ export function fetchAuctionEffect(tradeDate: string, window = 20) {
 export function fetchAuctionAccuracy() {
   return getJson<AccuracyResponse>("/api/auction/accuracy");
 }
+
+
+export interface LiveDecisionItem {
+  code: string;
+  name: string | null;
+  source: string | null;
+  freshness: "fresh" | "stale" | "timestamp_unknown" | "missing";
+  quote_age_seconds?: number | null;
+  price: number | null;
+  pct: number | null;
+  amount?: number | null;
+  volume_ratio?: number | null;
+  turnover_rate?: number | null;
+  limit_up?: number | null;
+  avg_price?: number | null;
+  above_vwap_proxy: boolean | null;
+  near_limit_up: boolean | null;
+  at_limit_up: boolean | null;
+  bid1_dominates_ask1: boolean | null;
+  observation_status: string;
+  mode_notes: string[];
+}
+
+export interface LiveDecisionResponse {
+  generated_at: string;
+  requested_codes: string[];
+  items: LiveDecisionItem[];
+  provider_errors: Record<string, string>;
+  freshness_threshold_seconds: number;
+  can_execute: false;
+  read_only: true;
+  decision_impact: false;
+  note: string;
+}
+
+export function monitorLiveDecision(codes: string[]) {
+  return postJson<LiveDecisionResponse>("/api/live-decision/monitor", { codes });
+}
