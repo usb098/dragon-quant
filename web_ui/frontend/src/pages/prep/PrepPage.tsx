@@ -322,7 +322,7 @@ export function PrepPage() {
           description="基于当前复盘候选，显式刷新行情快照；数据质量不足时明确标记未知，不将价格位置误当成交易信号。"
         >
           <LiveDecisionPanel
-            codes={Array.from(new Set((snapshot?.candidates ?? [])
+            codes={Array.from(new Set([...(snapshot?.candidates ?? []), ...(snapshot?.review_candidates ?? [])]
               .map((row) => String(row.code ?? ""))
               .filter((code) => /^\\d{6}$/.test(code))))}
           />

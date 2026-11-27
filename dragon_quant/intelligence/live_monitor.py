@@ -5,7 +5,6 @@ It never creates an entry signal, price target, position size or order.
 """
 from __future__ import annotations
 
-from dataclasses import asdict
 from datetime import datetime, timezone
 from typing import Any, Mapping
 
@@ -76,8 +75,10 @@ def _quote_payload(quote: Any, source: str, now_ms: int) -> dict[str, Any]:
 
 def monitor_quotes(codes: list[str], providers: Mapping[str, Any], now_ms: int | None = None) -> dict[str, Any]:
     """Fetch explicit user-requested candidates and return quality-labelled observations."""
+    if len(codes) > MAX_CODES:
+        raise ValueError(f"codes must contain at most {MAX_CODES} entries")
     normalized = list(dict.fromkeys(str(code).strip() for code in codes if str(code).strip()))
-    if not normalized or len(normalized) > MAX_CODES:
+    if not normalized:
         raise ValueError(f"codes must contain 1..{MAX_CODES} unique stock codes")
     if any(not code.isdigit() or len(code) != 6 for code in normalized):
         raise ValueError("each code must be a six-digit A-share stock code")
