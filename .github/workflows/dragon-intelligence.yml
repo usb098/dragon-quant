@@ -40,6 +40,7 @@ jobs:
           pytest -q \
             dragon_quant/tests/test_dragon_intelligence.py \
             dragon_quant/tests/test_intelligence_decision_framework.py \
+            dragon_quant/tests/test_intelligence_live_monitor.py \
             dragon_quant/tests/test_intelligence_cohesion.py \
             dragon_quant/tests/test_intelligence_evidence.py \
             dragon_quant/tests/test_intelligence_llm_agent.py \

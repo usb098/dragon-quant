@@ -30,6 +30,7 @@ import { navigate, useSearchParams } from "../../router";
 import { AssetDayTable } from "./AssetDayTable";
 import { PrepCoreResult } from "./PrepCoreResult";
 import { PrepDayEffectSection } from "./PrepDayEffectSection";
+import { LiveDecisionPanel } from "./LiveDecisionPanel";
 
 function normalizeIso(value: string): string {
   const text = (value || "").trim();
@@ -313,6 +314,18 @@ export function PrepPage() {
               description="请先运行 dragon-quant prep 生成复盘资产。"
             />
           )}
+        </Section>
+
+        {/* 盘中行情仅在用户主动刷新时拉取；选中历史日期也不自动触发。 */}
+        <Section
+          title="盘中实时观察"
+          description="基于当前复盘候选，显式刷新行情快照；数据质量不足时明确标记未知，不将价格位置误当成交易信号。"
+        >
+          <LiveDecisionPanel
+            codes={Array.from(new Set([...(snapshot?.candidates ?? []), ...(snapshot?.review_candidates ?? [])]
+              .map((row) => String(row.code ?? ""))
+              .filter((code) => /^\\d{6}$/.test(code))))}
+          />
         </Section>
 
         {/* 3. 当前 T 日效果：主线次日涨跌 + 严格逐股收益/回撤。 */}
