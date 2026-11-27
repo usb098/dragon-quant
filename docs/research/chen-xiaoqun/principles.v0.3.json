@@ -1,0 +1,255 @@
+{
+  "expert_id": "chen_xiaoqun",
+  "version": "0.3",
+  "status": "research_only",
+  "provenance_policy": "User-supplied material derivative. Do not treat as verified statements or audited broker statements.",
+  "principles": [
+    {
+      "id": "CX-P01",
+      "title": "主线优先",
+      "rule": "先定位主线和题材持续性，再筛选单票。",
+      "attribution": "mixed",
+      "confidence": "medium",
+      "source_refs": [
+        "S-A04",
+        "S-B01",
+        "S-D01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P02",
+      "title": "情绪与盘中反馈优先",
+      "rule": "观察焦点股、盘中承接和市场反馈，不以盘后故事替代盘中证据。",
+      "attribution": "mixed",
+      "confidence": "medium",
+      "source_refs": [
+        "S-A02",
+        "S-A04",
+        "S-A05",
+        "S-B01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P03",
+      "title": "龙头定义包含带动性",
+      "rule": "龙头判断不能仅看涨幅/高度，还要观察板块扩散和跟风赚钱效应。",
+      "attribution": "curated_plus_attributed_post",
+      "confidence": "medium",
+      "source_refs": [
+        "S-B01",
+        "S-A04"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P04",
+      "title": "市场合力不可被个人资金替代",
+      "rule": "缺少后续承接时，不假设单一资金可以维持晋级；合力需用扩散与承接代理验证。",
+      "attribution": "candidate_direct_post_plus_curated",
+      "confidence": "medium",
+      "source_refs": [
+        "S-A04",
+        "S-A05",
+        "S-B01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P05",
+      "title": "主线内二次筛选及补涨",
+      "rule": "在主流题材内区分龙头/前排/补涨；非主流高标不等同主线龙头。",
+      "attribution": "curated_secondary_interpretation",
+      "confidence": "medium_low",
+      "source_refs": [
+        "S-B01",
+        "S-D02"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P06",
+      "title": "按市场阶段切换模式",
+      "rule": "打板、低吸、半路、趋势持有和反核应分别按环境评估，不固化单一模式。",
+      "attribution": "mixed_and_conflicted",
+      "confidence": "medium",
+      "source_refs": [
+        "S-A02",
+        "S-B01",
+        "S-C01",
+        "S-C04"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P07",
+      "title": "买点重视确定性和预期强度",
+      "rule": "备忘录倾向打板，但其他材料列举多模式；需逐笔样本验证“多数”的适用范围。",
+      "attribution": "candidate_memo_plus_curated",
+      "confidence": "medium_low",
+      "source_refs": [
+        "S-A02",
+        "S-B01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P08",
+      "title": "强度不及预期时退出",
+      "rule": "强势票反馈低于事前预期时重新评估，预期兑现也需结合市场风险。",
+      "attribution": "candidate_memo_plus_curated",
+      "confidence": "medium",
+      "source_refs": [
+        "S-A02",
+        "S-B01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P09",
+      "title": "退潮期控制回撤",
+      "rule": "负反馈扩散或退潮阶段降低进攻性，不把单票反弹等同周期反转。",
+      "attribution": "mixed",
+      "confidence": "medium",
+      "source_refs": [
+        "S-A02",
+        "S-B01",
+        "S-D01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P10",
+      "title": "旧龙与新龙切换看题材生命周期",
+      "rule": "旧龙负反馈时先判断题材是否整体退潮，再研究新龙；首阴反包并非必然。",
+      "attribution": "curated_compilation",
+      "confidence": "medium_low",
+      "source_refs": [
+        "S-B01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P11",
+      "title": "趋势/逻辑型与短线题材分开管理",
+      "rule": "2025整理稿呈现趋势股做T和短线题材短持假设，但与其他材料冲突。",
+      "attribution": "third_party_hypothesis",
+      "confidence": "low",
+      "source_refs": [
+        "S-C02",
+        "S-C03",
+        "S-C04",
+        "S-B01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P12",
+      "title": "计划和结果双轨复盘",
+      "rule": "保存事前判断、触发和失效条件；盈亏结果与决策质量分开评估。",
+      "attribution": "candidate_posts_plus_curated",
+      "confidence": "medium",
+      "source_refs": [
+        "S-A01",
+        "S-A02",
+        "S-B01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P13",
+      "title": "分仓与风险约束",
+      "rule": "整理版提及分仓，但原始资料不足以还原真实仓位规则或比例。",
+      "attribution": "curated_compilation",
+      "confidence": "low",
+      "source_refs": [
+        "S-B01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    },
+    {
+      "id": "CX-P14",
+      "title": "市场反馈优先于维护主观判断",
+      "rule": "判断被市场证伪时更新假设，避免沉没成本和维护主观观点。",
+      "attribution": "candidate_posts_plus_curated",
+      "confidence": "medium",
+      "source_refs": [
+        "S-A01",
+        "S-A05",
+        "S-B01"
+      ],
+      "validation_status": "research_only",
+      "required_tests": [
+        "按市场阶段与模式分别建样本",
+        "保留亏损/撤单/未成交/错过机会",
+        "walk-forward 样本外验证并计入费用滑点"
+      ]
+    }
+  ]
+}

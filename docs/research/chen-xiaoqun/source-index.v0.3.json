@@ -1,0 +1,150 @@
+{
+  "version": "0.3",
+  "status": "research_only",
+  "sources": [
+    {
+      "id": "S-A01",
+      "file": "陈小群最新语录更新到2025年6月16号.pdf p.2",
+      "kind": "forum_screenshot_attributed_to_chen_xiaoqun",
+      "detail": "截图显示陈小群相关社交帖，含自述经历与盘面溢价解释；账号归属未独立验证。",
+      "grade": "A_candidate",
+      "use": "仅支持截图可见文本，不证明账号身份。"
+    },
+    {
+      "id": "S-A02",
+      "file": "陈小群最新语录更新到2025年6月16号.pdf p.3-4",
+      "kind": "memo_screenshot",
+      "detail": "备忘录日期2025-06-07；涉及席位溢价、市场资金认可、个人买点偏打板、退潮期回撤控制等。",
+      "grade": "A_candidate_attributed",
+      "use": "原则候选；作者身份与原始性需独立确认。"
+    },
+    {
+      "id": "S-A03",
+      "file": "陈小群最新语录更新到2025年6月16号.pdf p.5",
+      "kind": "forum_comment_screenshot",
+      "detail": "讨论打板炸板次日处理，截图答复割肉离场；个股和日期不完整。",
+      "grade": "A_candidate_attributed",
+      "use": "止损候选负样本，缺少标的与时间。"
+    },
+    {
+      "id": "S-A04",
+      "file": "陈小群最新语录更新到2025年6月16号.pdf p.8",
+      "kind": "forum_post_screenshot",
+      "detail": "截图显示账号心跳r、日期2022-06-09；讨论市场合力、首板次日无人承接则止损、不靠个人硬做二板。",
+      "grade": "A_candidate_attributed",
+      "use": "市场合力/失败离场原则候选。"
+    },
+    {
+      "id": "S-A05",
+      "file": "陈小群最新语录更新到2025年6月16号.pdf p.9",
+      "kind": "forum_post_screenshot",
+      "detail": "截图显示账号心跳r、日期2022-06-07；讨论好票需要市场承接，以及被核后反思自身与市场合力。",
+      "grade": "A_candidate_attributed",
+      "use": "市场承接与复盘原则候选。"
+    },
+    {
+      "id": "S-A06",
+      "file": "自贴交割单/20220406/20220406i5zgwknlyo3s.jpg_760w.png",
+      "kind": "forum_followup_screenshot",
+      "detail": "心跳r账号跟帖，显示03-29时间；讨论央企地产四小龙及短线买点，账号身份未独立验证。",
+      "grade": "A_candidate_attributed",
+      "use": "2022-03-29中交地产预期判断候选。"
+    },
+    {
+      "id": "S-A07",
+      "file": "自贴交割单/20220406/20220406jgkncxni2scp.jpg_760w.png",
+      "kind": "forum_post_screenshot",
+      "detail": "淘股吧热评显示心跳r、2022-03-29 22:37；称地产为次日预期差方向，点名中交地产、信达地产等。",
+      "grade": "A_candidate_attributed",
+      "use": "案例事前逻辑候选，非成交凭证。"
+    },
+    {
+      "id": "S-A08",
+      "file": "自贴交割单/20220315/2022031532m4qy95b79p.jpg_760w.png",
+      "kind": "broker_historical_orders_screenshot",
+      "detail": "同花顺历史委托筛选2022-03-09；显示浙江建投买入部分成交/部分撤及若干卖出已成。",
+      "grade": "A_candidate_app_record",
+      "use": "只转录截图可见字段；账户身份与截图完整性未核验。"
+    },
+    {
+      "id": "S-A09",
+      "file": "自贴交割单/20220403/20220403h7c1ak8bm3pp.jpg_760w.png",
+      "kind": "broker_historical_orders_screenshot",
+      "detail": "同花顺历史委托筛选2022-03-29至2022-03-30；中交地产多条买入含已成、部撤、已撤。",
+      "grade": "A_candidate_app_record",
+      "use": "部分转录到可见委托数据。"
+    },
+    {
+      "id": "S-A10",
+      "file": "自贴交割单/20220403/20220403n9ljp5rpf0tp.jpg_760w.png",
+      "kind": "broker_historical_orders_screenshot",
+      "detail": "历史委托筛选2022-03-29；中交地产尾盘买入，包含已成和已报未成交。",
+      "grade": "A_candidate_app_record",
+      "use": "已报/已申报不得计为成交。"
+    },
+    {
+      "id": "S-B01",
+      "file": "【1】陈小群交割单.pdf PDF p.79-101（书内p.58-80）",
+      "kind": "curated_case_compilation",
+      "detail": "薛师爷合集陈小群篇：要诀、核心观点与55条观点，以及浙江建投、中交地产、特力A、中通客车、新易盛等案例。",
+      "grade": "B_curated",
+      "use": "产生理念/案例假设，不当本人逐字原话或完整账户流水。"
+    },
+    {
+      "id": "S-C01",
+      "file": "2025年4月——日K交割单.pdf",
+      "kind": "third_party_daily_commentary",
+      "detail": "10页日K/分时图与文字记录，动作归因多由整理者解释。",
+      "grade": "C_commentary",
+      "use": "事件时间线线索，不作已核实成交。"
+    },
+    {
+      "id": "S-C02",
+      "file": "2025年5月——日K交割单.pdf",
+      "kind": "third_party_daily_commentary",
+      "detail": "11页日K/分时图与文字记录，含多只股票做T/操作描述。",
+      "grade": "C_commentary",
+      "use": "事件时间线线索。"
+    },
+    {
+      "id": "S-C03",
+      "file": "2025年6月——日K交割单.pdf",
+      "kind": "third_party_daily_commentary",
+      "detail": "20页日K/分时图与文字记录，含多个题材观察。",
+      "grade": "C_commentary",
+      "use": "事件时间线线索。"
+    },
+    {
+      "id": "S-C04",
+      "file": "2025年7月——日K交割单.pdf",
+      "kind": "third_party_daily_commentary",
+      "detail": "7页日K/分时图与文字记录，部分亏损/休息描述由作者解释。",
+      "grade": "C_commentary",
+      "use": "事件时间线线索，不视为审计成交记录。"
+    },
+    {
+      "id": "S-D01",
+      "file": "游资主力陈小群炒股手法研究笔记.pdf",
+      "kind": "secondary_research_note",
+      "detail": "二手研究笔记，含未经核验个人经历、席位/胜率/资产规模、龙虎榜叙述与案例摘录。",
+      "grade": "D_secondary",
+      "use": "仅作待验证研究线索；个人资料与绩效数字排除。"
+    },
+    {
+      "id": "S-D02",
+      "file": "金马路陈小群交割单图解（一年30倍破亿）.pdf",
+      "kind": "secondary_curator_analysis",
+      "detail": "二手图解，作者主要结合龙虎榜与图表解释，分析是作者总结。",
+      "grade": "D_secondary",
+      "use": "补涨龙/前排龙差异只作作者假设。"
+    },
+    {
+      "id": "S-X01",
+      "file": "写一些话语给刚入行的朋友.pdf",
+      "kind": "curator_advice_excluded",
+      "detail": "整理者给新手的建议，含养家、涅槃等其他人物资料。",
+      "grade": "excluded",
+      "use": "不纳入陈小群画像。"
+    }
+  ]
+}

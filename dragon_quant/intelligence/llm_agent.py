@@ -72,6 +72,10 @@ def _compact_candidate(row: Mapping[str, Any]) -> dict:
         for item in opinions[:5]:
             if not isinstance(item, Mapping):
                 continue
+            decision = item.get("decision_framework")
+            decision = decision if isinstance(decision, Mapping) else {}
+            mode_assessments = decision.get("mode_assessments")
+            mode_assessments = mode_assessments if isinstance(mode_assessments, list) else []
             opinion_summary.append({
                 "expert": item.get("expert_name"),
                 "stance": item.get("stance"),
@@ -79,6 +83,21 @@ def _compact_candidate(row: Mapping[str, Any]) -> dict:
                 "summary": item.get("summary"),
                 "unknowns": item.get("unknowns", [])[:4]
                 if isinstance(item.get("unknowns"), list) else [],
+                "decision_framework": {
+                    "status": decision.get("status"),
+                    "preferred_mode": decision.get("preferred_mode"),
+                    "selection_tier": decision.get("selection_tier"),
+                    "mode_assessments": [
+                        {
+                            "mode": row.get("mode"),
+                            "status": row.get("status"),
+                            "blockers": row.get("blockers", [])[:3],
+                            "required_confirmations": row.get("required_confirmations", [])[:4],
+                        }
+                        for row in mode_assessments[:5]
+                        if isinstance(row, Mapping)
+                    ],
+                },
             })
     return {
         "code": row.get("code"),
@@ -238,6 +257,8 @@ def run_research(deterministic_result: Mapping[str, Any]) -> dict:
         "生命周期数据只覆盖已保存快照，不能把观察快照连续数说成真实连续交易日。"
         "若启用了 web_search，只能用带来源的公开信息补充政策/产业催化和市场背景；"
         "来源缺失、数据冲突或信息时间不清楚时，放入 unknowns。"
+        "模式选择器的 conditional_setup 只代表观察清单，不是买点；blocked 必须保留为否决。"
+        "你只能评估模式条件是否得到输入证据支持，不得替代确定性模式选择器，也不得提出具体买卖动作、价格或仓位。"
         "返回结构化研究结论，不要模仿某位交易者的口吻。"
     )
     user_input = (

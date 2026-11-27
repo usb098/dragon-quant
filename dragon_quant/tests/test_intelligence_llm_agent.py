@@ -59,3 +59,33 @@ def test_parser_rejects_incomplete_response():
             "status": "incomplete",
             "incomplete_details": {"reason": "max_output_tokens"},
         })
+
+
+def test_compact_candidate_includes_decision_framework_for_llm_cross_review():
+    from dragon_quant.intelligence.llm_agent import _compact_candidate
+
+    compact = _compact_candidate({
+        "code": "600001",
+        "name": "核心股A",
+        "expert_opinions": [{
+            "expert_name": "陈小群理念专家",
+            "stance": "neutral",
+            "confidence": "medium",
+            "summary": "只作条件观察",
+            "unknowns": ["盘中竞价未知"],
+            "decision_framework": {
+                "status": "conditional_watch",
+                "preferred_mode": "breakout_follow",
+                "selection_tier": "A_core_watch",
+                "mode_assessments": [{
+                    "mode": "breakout_follow",
+                    "status": "conditional_setup",
+                    "blockers": [],
+                    "required_confirmations": ["次日竞价"],
+                }],
+            },
+        }],
+    })
+    decision = compact["expert_opinions"][0]["decision_framework"]
+    assert decision["preferred_mode"] == "breakout_follow"
+    assert decision["mode_assessments"][0]["required_confirmations"] == ["次日竞价"]

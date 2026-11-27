@@ -8,12 +8,14 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
+from ..decision_framework import build_decision_framework
+
 EXPERT_META = {
     "id": "chen_xiaoqun",
     "name": "陈小群理念专家",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "kind": "deterministic_framework",
-    "framework": "public_framework_distillation_v1",
+    "framework": "user_material_distillation_v0.3_with_conditional_modes",
     "market_scope": ["A股"],
     "time_horizon": "short_term",
     "style": "emotion_mainline_leader",
@@ -25,6 +27,8 @@ EXPERT_META = {
         "市场合力",
         "预期差",
         "空仓与纪律",
+        "按市场阶段区分打板、低吸、弱转强、趋势与修复",
+        "事前预期与失效条件",
     ],
 }
 
@@ -138,6 +142,8 @@ def analyze_candidate(context: Mapping[str, Any], candidate: Mapping[str, Any]) 
             posture = "observe_only"
             summary = "结构上存在总龙头候选，但情绪周期未知，当前只作观察，不形成方向性判断。"
 
+    decision_framework = build_decision_framework(context, candidate)
+
     return {
         "expert_id": EXPERT_META["id"],
         "expert_name": EXPERT_META["name"],
@@ -150,4 +156,5 @@ def analyze_candidate(context: Mapping[str, Any], candidate: Mapping[str, Any]) 
         "evidence_against": against,
         "unknowns": list(dict.fromkeys(unknowns)),
         "risk_flags": list(dict.fromkeys(risk_flags)),
+        "decision_framework": decision_framework,
     }

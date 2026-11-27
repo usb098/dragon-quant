@@ -233,6 +233,43 @@ function CandidateCard({ candidate }: { candidate: DragonIntelligenceCandidate }
                 <Badge tone="muted">{confidenceLabel(opinion.confidence)}</Badge>
               </div>
               <p className="text-body text-ink-2">{opinion.summary}</p>
+              {opinion.decision_framework ? (
+                <div className="grid gap-2 rounded-md border border-hairline bg-panel-2 px-3 py-2.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-caption font-medium text-ink-3">条件式决策框架</span>
+                    <Badge tone={opinion.decision_framework.status === "stand_aside" ? "warning" : "normal"}>
+                      {opinion.decision_framework.status_label}
+                    </Badge>
+                    <Badge tone="outline">{opinion.decision_framework.preferred_mode_label}</Badge>
+                    <Badge tone="muted">{opinion.decision_framework.selection_tier}</Badge>
+                  </div>
+                  <div className="grid gap-1">
+                    {opinion.decision_framework.mode_assessments.map((item) => (
+                      <div key={item.mode} className="grid gap-1 border-t border-hairline pt-1.5">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-body font-medium text-ink-2">{item.label}</span>
+                          <Badge tone={item.status === "blocked" ? "warning" : item.status === "conditional_setup" ? "normal" : "muted"}>
+                            {item.status === "blocked" ? "阻断" : item.status === "conditional_setup" ? "条件观察" : "证据不足"}
+                          </Badge>
+                        </div>
+                        {item.blockers.map((reason) => (
+                          <div key={reason} className="text-caption text-warning">{`× ${reason}`}</div>
+                        ))}
+                        {item.evidence.slice(0, 2).map((reason) => (
+                          <div key={reason} className="text-caption text-ink-2">{`✓ ${reason}`}</div>
+                        ))}
+                        {item.required_confirmations.slice(0, 3).map((reason) => (
+                          <div key={reason} className="text-caption text-ink-3">{`待确认：${reason}`}</div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                  {opinion.decision_framework.hard_risks.map((reason) => (
+                    <div key={reason} className="text-caption text-warning">风险门控：{reason}</div>
+                  ))}
+                  <div className="text-caption text-ink-3">{opinion.decision_framework.note}</div>
+                </div>
+              ) : null}
               {opinion.evidence_for.length ? (
                 <div className="grid gap-1">
                   <div className="text-caption font-medium text-ink-3">支持证据</div>

@@ -130,6 +130,34 @@ export interface PrepSnapshotView {
   derived: PrepDerived;
 }
 
+export interface DragonDecisionModeAssessment {
+  mode: string;
+  label: string;
+  status: "conditional_setup" | "blocked" | "insufficient_evidence";
+  evidence: string[];
+  blockers: string[];
+  required_confirmations: string[];
+}
+
+export interface DragonDecisionFramework {
+  framework_version: string;
+  status: "stand_aside" | "conditional_watch" | "wait_for_confirmation" | "insufficient_data";
+  status_label: string;
+  selection_tier: string;
+  preferred_mode: string;
+  preferred_mode_label: string;
+  mode_assessments: DragonDecisionModeAssessment[];
+  gates: Record<string, string | number | boolean | null>;
+  hard_risks: string[];
+  cautions: string[];
+  principle_refs: string[];
+  required_live_data: string[];
+  can_execute: false;
+  read_only: true;
+  decision_impact: false;
+  note: string;
+}
+
 export interface DragonIntelligenceOpinion {
   expert_id: string;
   expert_name: string;
@@ -142,6 +170,7 @@ export interface DragonIntelligenceOpinion {
   evidence_against: string[];
   unknowns: string[];
   risk_flags: string[];
+  decision_framework?: DragonDecisionFramework;
 }
 
 export interface DragonIntelligenceCandidate {

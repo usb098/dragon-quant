@@ -1,0 +1,141 @@
+{
+  "expert_id": "chen_xiaoqun",
+  "version": "0.3",
+  "status": "research_only",
+  "evidence_policy": {
+    "A_candidate": "截图中可以辨认的账号/软件字段；账号身份与完整性未独立确认",
+    "B_curated": "整理者归纳、引用与案例重建；不等于本人逐字原话或完整账户流水",
+    "C_commentary": "2025年逐日整理稿；作者观察/推测，不等于已核实成交",
+    "D_secondary": "二手研究，仅作待验证假设"
+  },
+  "cases": [
+    {
+      "date": "2022-03-09",
+      "ticker": "浙江建投",
+      "type": "visible_order_rows",
+      "source_ref": "S-A08",
+      "summary": "历史委托截图可见多笔卖出已成交及一笔买入部分成交；文件夹日期与软件筛选日期不一致。",
+      "grade": "A_candidate_app_record",
+      "limitations": [
+        "仅截图可见行",
+        "账号归属未独立确认",
+        "不是完整流水"
+      ]
+    },
+    {
+      "date": "2022-03-29",
+      "ticker": "中交地产",
+      "type": "candidate_pretrade_view",
+      "source_refs": [
+        "S-A06",
+        "S-A07"
+      ],
+      "summary": "候选账号截图涉及央企地产预期并点名中交地产、信达地产。",
+      "grade": "A_candidate_attributed_post",
+      "limitations": [
+        "账号身份未核实",
+        "截图未独立认证",
+        "不证明实际下单原因"
+      ]
+    },
+    {
+      "date": "2022-03-29",
+      "ticker": "中交地产",
+      "type": "visible_orders",
+      "source_refs": [
+        "S-A09",
+        "S-A10"
+      ],
+      "summary": "软件委托截图可见多笔买入，价格约9.88至11.68；混有已成、部分撤、已撤、已报。",
+      "grade": "A_candidate_app_record",
+      "limitations": [
+        "列表不完整",
+        "只以成交数量认定可见成交",
+        "账号归属未核实"
+      ]
+    },
+    {
+      "date": "2022-03-29",
+      "ticker": "中交地产",
+      "type": "price_context",
+      "summary": "行情截图标示收盘11.68、涨9.98%；仅作市场行情上下文。",
+      "grade": "A_candidate_chart_capture",
+      "limitations": [
+        "不是账户成交证明"
+      ]
+    },
+    {
+      "date": "2022-04-01",
+      "ticker": "中交地产",
+      "type": "price_context",
+      "summary": "行情截图标示收盘15.55、涨9.97%；仅作市场行情上下文。",
+      "grade": "A_candidate_chart_capture",
+      "limitations": [
+        "不能推导账户收益或持仓"
+      ]
+    },
+    {
+      "date": "2022-04-07",
+      "ticker": "中交地产",
+      "type": "market_statistics",
+      "summary": "截图含3月23日至4月7日价格涨幅、指数变化和偏离值表。",
+      "grade": "A_candidate_secondary_table",
+      "limitations": [
+        "需人工完整转录后才能量化"
+      ]
+    },
+    {
+      "date": "2022-04-11",
+      "ticker": "中交地产",
+      "type": "price_context",
+      "summary": "行情截图标示报价20.45、涨6.23%；图中均价不是账户成本。",
+      "grade": "A_candidate_chart_capture",
+      "limitations": [
+        "不能推导账户收益或持仓"
+      ]
+    },
+    {
+      "date": "2022-04-12",
+      "ticker": "中交地产",
+      "type": "daily_pnl_fragment",
+      "summary": "裁剪表格出现当日盈亏负值，但缺账户、持仓数量与计算口径。",
+      "grade": "A_candidate_app_fragment",
+      "limitations": [
+        "不能推导完整损益",
+        "表格上下文缺失"
+      ]
+    },
+    {
+      "date": "2022-04-12/13",
+      "ticker": "中交地产",
+      "type": "secondary_reconstruction",
+      "summary": "二手合集称高点卖出后于跌停开盘反核买入并盈利；4月13日相关三张原始图损坏。",
+      "grade": "B_curated_reconstruction",
+      "limitations": [
+        "非原始成交凭证",
+        "关键图片损坏",
+        "金额/收益不能核验"
+      ]
+    },
+    {
+      "date": "2022-06-07",
+      "ticker": "市场合力",
+      "type": "attributed_post",
+      "summary": "候选账号截图讨论好票需要市场合力承接，并强调从自身和市场复盘原因。",
+      "grade": "A_candidate_attributed_post",
+      "limitations": [
+        "账号身份未核验"
+      ]
+    },
+    {
+      "date": "2022-06-09",
+      "ticker": "首板/二板承接",
+      "type": "attributed_post",
+      "summary": "候选账号截图讨论首板次日缺乏承接时不宜硬做二板，且市场合力不等于游资抱团。",
+      "grade": "A_candidate_attributed_post",
+      "limitations": [
+        "账号身份未核验"
+      ]
+    }
+  ]
+}
